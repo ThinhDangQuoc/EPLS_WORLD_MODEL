@@ -143,8 +143,14 @@ except ImportError:
 if not hasattr(gym.Wrapper, '__getattr__'):
     def wrapper_getattr(self, name):
         if name == "env":
-            return self.__dict__["env"]
-        return getattr(self.env, name)
+            return self.__dict__.get("env")
+        
+        # Tránh lỗi KeyError/AttributeError khi Wrapper đang trong quá trình khởi tạo (chưa có .env)
+        if "env" in self.__dict__:
+            return getattr(self.__dict__["env"], name)
+        
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        
     gym.Wrapper.__getattr__ = wrapper_getattr
 
 class StepCompatibilityWrapper(gym.Wrapper):
