@@ -7,6 +7,8 @@ data_iterative/
 *.tar
 *.pickle
 *.zip
+mdrnn/checkpoints/
+vae/checkpoints/
 
 # Python
 __pycache__/
