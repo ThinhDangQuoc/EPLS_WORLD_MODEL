@@ -12,7 +12,7 @@ class CarRacingActionSampler(BaseActionSampler):
         self.max_gas = self.config['simulated_environment']['car_racing']['max_gas']
         self.max_brake = self.config['simulated_environment']['car_racing']['max_brake']
 
-    def sample(self):  # Sampling: [ steer, gas, brake ] = [ [-1, +1] , [0, 1], [0, 1] ]
+    def sample(self, previous_action=None):  # Sampling: [ steer, gas, brake ] = [ [-1, +1] , [0, 1], [0, 1] ]
         return self._continous_sample() if not self.is_discretize_sampling else self.discrete_sample()
 
     def sample_logits(self):
