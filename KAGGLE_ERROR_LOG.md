@@ -71,3 +71,13 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Triệu chứng:** Crash khi đang gen data: `AttributeError: 'CarRacing' object has no attribute 'viewer'`.
 - **Nguyên nhân:** Code gốc cố gắng gọi `viewer.window.dispatch_events()` nhưng trên Kaggle không có màn hình nên `viewer` không tồn tại.
 - **Giải pháp:** Bọc lệnh gọi vào khối `try-except` và kiểm tra `hasattr(environment.environment, 'viewer')`.
+
+## 15. Lỗi Sai Lệch Tham Số Lấy Mẫu (TypeError: ActionSampler.sample())
+- **Triệu chứng:** `TypeError: CarRacingActionSampler.sample() takes 1 positional argument but 2 were given`.
+- **Nguyên nhân:** Rollout Generator truyền vào `previous_action` nhưng hàm `sample()` của Sampler không được khai báo nhận tham số này.
+- **Giải pháp:** Cập nhật định nghĩa hàm thành `sample(self, previous_action=None)` để tương thích mọi lời gọi.
+
+## 16. Lỗi Tràn Màn Hình Log (Notebook Scrolling Spam)
+- **Triệu chứng:** Hàng nghìn dòng thanh tiến trình `tqdm` và thông báo in ra liên tục làm treo trình duyệt.
+- **Nguyên nhân:** Sử dụng `tqdm` với `position` trong đa tiến trình trên Notebook không được hỗ trợ tốt; và in thông báo lưu file quá thường xuyên.
+- **Giải pháp:** Gỡ bỏ `tqdm` ở vòng lặp trong và ẩn các lệnh `print` kết thúc mỗi Rollout. Chỉ giữ lại log ở mức độ thread/stage.

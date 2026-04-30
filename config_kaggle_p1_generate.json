@@ -39,7 +39,7 @@
     },
     "data_generator": {
         "data_prefix": "random",
-        "rollouts": 10000,
+        "rollouts": 5000,
         "sequence_length": 501,
         "data_output_dir": "data_random_raw",
         "fixed_cores": null,
@@ -68,20 +68,64 @@
     "vae": {
         "encoder": {
             "convolution": {
-                "layer_1": {"in": 3, "out": 32, "filter_size": 4, "strides": 2},
-                "layer_2": {"in": 32, "out": 64, "filter_size": 4, "strides": 2},
-                "layer_3": {"in": 64, "out": 128, "filter_size": 4, "strides": 2},
-                "layer_4": {"in": 128, "out": 256, "filter_size": 4, "strides": 2}
+                "layer_1": {
+                    "in": 3,
+                    "out": 32,
+                    "filter_size": 4,
+                    "strides": 2
+                },
+                "layer_2": {
+                    "in": 32,
+                    "out": 64,
+                    "filter_size": 4,
+                    "strides": 2
+                },
+                "layer_3": {
+                    "in": 64,
+                    "out": 128,
+                    "filter_size": 4,
+                    "strides": 2
+                },
+                "layer_4": {
+                    "in": 128,
+                    "out": 256,
+                    "filter_size": 4,
+                    "strides": 2
+                }
             },
-            "dense": {"in": 1024}
+            "dense": {
+                "in": 1024
+            }
         },
         "decoder": {
-            "dense": {"out": 1024},
+            "dense": {
+                "out": 1024
+            },
             "deconvolution": {
-                "layer_1": {"in": 1024, "out": 128, "filter_size": 5, "strides": 2},
-                "layer_2": {"in": 128, "out": 64, "filter_size": 5, "strides": 2},
-                "layer_3": {"in": 64, "out": 32, "filter_size": 6, "strides": 2},
-                "layer_4": {"in": 32, "out": 3, "filter_size": 6, "strides": 2}
+                "layer_1": {
+                    "in": 1024,
+                    "out": 128,
+                    "filter_size": 5,
+                    "strides": 2
+                },
+                "layer_2": {
+                    "in": 128,
+                    "out": 64,
+                    "filter_size": 5,
+                    "strides": 2
+                },
+                "layer_3": {
+                    "in": 64,
+                    "out": 32,
+                    "filter_size": 6,
+                    "strides": 2
+                },
+                "layer_4": {
+                    "in": 32,
+                    "out": 3,
+                    "filter_size": 6,
+                    "strides": 2
+                }
             }
         }
     },
@@ -149,7 +193,7 @@
         "genetic_operator": "crossover_mutation",
         "crossover_method": "uniform",
         "mutation_method": "subset_mutation",
-        "mutation_probability": 0.20,
+        "mutation_probability": 0.2,
         "tournament_percentage": 0.5,
         "random_seed": null
     },
@@ -161,16 +205,59 @@
         "explore_rate": 2.0,
         "ucb_random_noise": 0.5,
         "eval_neighbours": 50,
-        "shift_buffer_options": [true, false],
-        "horizon_options": [5, 10, 15, 20, 25],
-        "generation_options": [1, 5, 10, 15, 20, 25],
-        "is_rollout_options": [false],
-        "max_rollout_options": [1],
-        "mutation_options": ["single_uniform", "all_uniform", "subset_mutation"],
-        "RHEA_population_size": [4, 6, 8, 10, 12],
-        "RHEA_genetic_operator_options": ["crossover", "mutation", "crossover_mutation"],
-        "RHEA_selection_options": ["uniform", "tournament", "rank", "roulette"],
-        "RHEA_crossover_methods_options": ["uniform", "1_bit", "2_bit"]
+        "shift_buffer_options": [
+            true,
+            false
+        ],
+        "horizon_options": [
+            5,
+            10,
+            15,
+            20,
+            25
+        ],
+        "generation_options": [
+            1,
+            5,
+            10,
+            15,
+            20,
+            25
+        ],
+        "is_rollout_options": [
+            false
+        ],
+        "max_rollout_options": [
+            1
+        ],
+        "mutation_options": [
+            "single_uniform",
+            "all_uniform",
+            "subset_mutation"
+        ],
+        "RHEA_population_size": [
+            4,
+            6,
+            8,
+            10,
+            12
+        ],
+        "RHEA_genetic_operator_options": [
+            "crossover",
+            "mutation",
+            "crossover_mutation"
+        ],
+        "RHEA_selection_options": [
+            "uniform",
+            "tournament",
+            "rank",
+            "roulette"
+        ],
+        "RHEA_crossover_methods_options": [
+            "uniform",
+            "1_bit",
+            "2_bit"
+        ]
     },
     "planning": {
         "planning_agent": "RMHC",

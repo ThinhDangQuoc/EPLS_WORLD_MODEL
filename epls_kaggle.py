@@ -79,13 +79,16 @@ def setup_assets():
 # 3. Đảm bảo toàn bộ thư mục là Python Packages (Fix ModuleNotFoundError)
 def fix_python_packages():
     print("🛠️ Verifying Python packages...")
+    created = 0
     for root, dirs, files in os.walk(WORK_DIR):
         if ".git" in root or "__pycache__" in root: continue
         if "__init__.py" not in files:
             with open(os.path.join(root, "__init__.py"), "w") as f:
                 pass
-            print(f"  🆕 Created __init__.py in {os.path.relpath(root, WORK_DIR)}")
-    
+            created += 1
+    if created:
+        print(f"  🆕 Created {created} missing __init__.py files")
+
     # Ép Python xóa cache để nhận diện package mới
     import sys
     for mod in list(sys.modules.keys()):
@@ -129,14 +132,24 @@ print("✅ Manual StepCompatibilityWrapper applied")
 # ---------- Xvfb helper ----------
 _xvfb_proc = None
 def start_xvfb():
+    """Khởi động Xvfb (virtual display) cho môi trường Kaggle headless.
+    Fix #5: Tăng thời gian chờ và kiểm tra DISPLAY trước khi tiếp tục."""
     global _xvfb_proc
     if _xvfb_proc is None:
-        _xvfb_proc = subprocess.Popen(
-            ["Xvfb", ":99", "-screen", "0", "1280x1024x24"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        os.environ["DISPLAY"] = ":99"
-        time.sleep(1)
-        print("✅ Xvfb started")
+        try:
+            _xvfb_proc = subprocess.Popen(
+                ["Xvfb", ":99", "-screen", "0", "1280x1024x24"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            os.environ["DISPLAY"] = ":99"
+            time.sleep(2)  # Tăng thời gian chờ để Xvfb sẵn sàng
+            # Kiểm tra Xvfb đã khởi động thành công chưa
+            if _xvfb_proc.poll() is not None:
+                print("⚠️ Xvfb failed to start — continuing headless without display")
+                _xvfb_proc = None
+            else:
+                print("✅ Xvfb started")
+        except FileNotFoundError:
+            print("⚠️ Xvfb not found — continuing headless without display")
 
 # ---------- Config helpers ----------
 def _deep_merge(base: dict, overrides: dict) -> dict:
@@ -194,6 +207,7 @@ if existing_random < 5000:
         "is_generate_data": True,
         "data_generator": {
             "data_output_dir": "data_random_raw",
+            "data_prefix": "_random_",  # Tránh trùng tên với expert rollouts
             "rollouts": 5000,
             "sequence_length": 501,
             "car_racing": {"is_ha_agent_driver": False}
@@ -354,6 +368,7 @@ if existing_random < 5000:
         "is_generate_data": True,
         "data_generator": {
             "data_output_dir": "data_random_raw",
+            "data_prefix": "_random_",  # Tránh trùng tên khi merge
             "rollouts": 5000 - existing_random,
             "sequence_length": 501,
             "car_racing": {"is_ha_agent_driver": False}
@@ -372,6 +387,7 @@ if existing_expert < 5000:
         "is_generate_data": True,
         "data_generator": {
             "data_output_dir": "data_expert_raw",
+            "data_prefix": "_expert_",  # ⚠️ QUAN TRỌNG: prefix khác để tránh trùng tên khi merge
             "rollouts": 5000 - existing_expert,
             "sequence_length": 501,
             "car_racing": {"is_ha_agent_driver": True}
