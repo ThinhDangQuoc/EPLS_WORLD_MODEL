@@ -26,8 +26,14 @@ class CarRacingWrapper(CarRacing):
     self.full_episode = full_episode
     self.observation_space = Box(low=0, high=255, shape=(SCREEN_X, SCREEN_Y, 3)) # , dtype=np.uint8
 
-  def _step(self, action):
-    obs, reward, done, _ = super(CarRacingWrapper, self)._step(action)
+  def step(self, action):
+    results = super(CarRacingWrapper, self).step(action)
+    if len(results) == 5:
+        obs, reward, terminated, truncated, info = results
+        done = terminated or truncated
+    else:
+        obs, reward, done, info = results
+        
     if self.full_episode:
       return _process_frame(obs), reward, False, {}
     return _process_frame(obs), reward, done, {}
