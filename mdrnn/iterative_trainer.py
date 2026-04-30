@@ -36,7 +36,8 @@ try:
 except (ImportError, ModuleNotFoundError):
     from iteration_stats.iteration_result import IterationResult
 from environment.actions.action_sampler_factory import get_action_sampler
-gym.logger.set_level(40)  # Disable user warnings
+if hasattr(gym.logger, 'set_level'):
+    gym.logger.set_level(40)  # Disable user warnings
 
 if platform.system() == "Darwin" or platform.system() == "Linux":
     print("Spawn method enabled over fork on Mac OSX / Linux")
