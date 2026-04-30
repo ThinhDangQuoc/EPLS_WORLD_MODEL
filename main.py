@@ -3,6 +3,12 @@
 #  This file is part of the Evolutionary Planning on a Learned World Model thesis.
 #  Unauthorized copying of this file, via any medium is strictly prohibited without the consensus of the authors.
 #  Written by Thor V.A.N. Olesen <thorolesen@gmail.com> & Dennis T.T. Nguyen <dennisnguyen3000@yahoo.dk>.
+"""
+import numpy as np
+# Patch NumPy 2.0 compatibility for legacy libraries (Gym/Box2D)
+if not hasattr(np, 'bool8'): np.bool8 = np.bool_
+if not hasattr(np, 'float'): np.float = float
+if not hasattr(np, 'int'): np.int = int
 
 import json
 from vae.vae import VAE

@@ -10,6 +10,12 @@
 # ## Cell 1: Install Dependencies
 # %%
 import subprocess, sys, os, json, shutil, time, glob
+import numpy as np
+
+# Vá lỗi tương thích NumPy 2.0 cho các thư viện cũ (Gym, Box2D)
+if not hasattr(np, 'bool8'): np.bool8 = np.bool_
+if not hasattr(np, 'float'): np.float = float
+if not hasattr(np, 'int'): np.int = int
 
 def run(cmd):
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -39,6 +45,8 @@ if not os.path.exists(WORK_DIR):
 else:
     print(f"🔄 Updating code from Git...")
     os.chdir(WORK_DIR)
+    # Xóa bỏ các thay đổi local (như config.json tự sinh) để tránh xung đột khi pull
+    run("git checkout -- .") 
     run("git pull")
 
 os.chdir(WORK_DIR)
