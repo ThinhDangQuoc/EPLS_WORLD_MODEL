@@ -67,8 +67,8 @@ class BaseRolloutGenerator:
         return frame
 
     def _save_rollout(self, thread, rollout_number, states_rollout, reward_rollout, actions_rollout, is_done_rollout):
-        print(f"Thread {thread} - End of rollout {rollout_number}, {len(states_rollout)} frames.")
-        print(self.data_dir, f'{self.config["game"]}_thread_{thread}_rollout_{rollout_number}')
+        # print(f"Thread {thread} - End of rollout {rollout_number}, {len(states_rollout)} frames.")
+        # print(self.data_dir, f'{self.config["game"]}_thread_{thread}_rollout_{rollout_number}')
         np.savez_compressed(file=join(self.data_dir,
                                       f'{self.config["game"]}{self.config["data_generator"]["data_prefix"]}thread_{thread}_rollout_{rollout_number}'),
                             observations=np.array(states_rollout),
