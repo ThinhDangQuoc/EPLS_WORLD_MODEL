@@ -50,6 +50,8 @@ class BaseRolloutGenerator:
         for i in range(1, rollouts+1):
             actions_rollout, states_rollout, reward_rollout, is_done_rollout = self._standard_rollout(environment, thread, i, rollouts)
             self._save_rollout(thread, i, states_rollout, reward_rollout, actions_rollout, is_done_rollout)
+            if i % 10 == 0 or i == rollouts:
+                print(f"🧵 Thread {thread} | Progress: {i}/{rollouts} rollouts ({(i/rollouts)*100:.1f}%)")
         return thread
 
     def _standard_rollout(self, environment, thread, current_rollout, rollouts):
