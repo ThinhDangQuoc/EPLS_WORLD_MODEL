@@ -181,6 +181,10 @@ class StepCompatibilityWrapper(gym.Wrapper):
         return getattr(self.env, name)
 
     def step(self, action):
+        # Gymnasium yêu cầu action là numpy array để gọi .astype() bên trong env lõi
+        if isinstance(action, (list, tuple)):
+            action = np.array(action, dtype=np.float32)
+
         results = self.env.step(action)
         if len(results) == 5:
             # obs, reward, terminated, truncated, info
