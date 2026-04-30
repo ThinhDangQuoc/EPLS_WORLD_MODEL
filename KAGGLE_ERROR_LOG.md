@@ -86,3 +86,8 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Triệu chứng:** Crash khi bắt đầu huấn luyện MDRNN với lỗi `invalid device ordinal`.
 - **Nguyên nhân:** Code trong `mdrnn/mdrnn_trainer.py` hardcode gọi `torch.cuda.set_device(2)`, nhưng máy Kaggle không có đủ 3 GPU.
 - **Giải pháp:** Xóa bỏ lệnh `torch.cuda.set_device(2)`, để PyTorch tự động nhận diện và sử dụng thiết bị mặc định (thường là `cuda:0`).
+
+## 18. Lỗi Môi trường bị Khai tử (gymnasium.error.DeprecatedEnv: CarRacing-v2)
+- **Triệu chứng:** `gymnasium.error.DeprecatedEnv: Environment version v2 for CarRacing is deprecated. Please use CarRacing-v3 instead.`
+- **Nguyên nhân:** Phiên bản Gymnasium mới trên Kaggle đã khai tử `v2` và yêu cầu dùng `v3`.
+- **Giải pháp:** Cập nhật `epls_kaggle.py` để tự động kiểm tra xem `CarRacing-v3` có tồn tại không bằng `gym.spec()`. Nếu có thì dùng `v3`, nếu không thì fallback về `v2`. Đồng thời cập nhật `compatible_make` để ánh xạ mọi yêu cầu "CarRacing" về phiên bản khả dụng nhất.

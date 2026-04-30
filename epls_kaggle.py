@@ -125,12 +125,18 @@ fix_python_packages()
 # Cấu trúc Wrapper thủ công để đảm bảo tương thích mọi phiên bản (Gym/Gymnasium, Python 3.10/3.12)
 try:
     import gymnasium as gym
-    ENV_ID = "CarRacing-v2"
-    print("✨ Using Gymnasium (CarRacing-v2)")
+    # Tự động phát hiện version mới nhất (v3) hoặc fallback v2
+    ENV_ID = "CarRacing-v3"
+    try:
+        gym.spec(ENV_ID)
+        print(f"✨ Using Gymnasium ({ENV_ID})")
+    except:
+        ENV_ID = "CarRacing-v2"
+        print(f"✨ Using Gymnasium ({ENV_ID})")
 except ImportError:
     import gym
     ENV_ID = "CarRacing-v2"
-    print("✨ Using Legacy Gym (CarRacing-v2)")
+    print(f"✨ Using Legacy Gym ({ENV_ID})")
 
 class StepCompatibilityWrapper(gym.Wrapper):
     """Ép kết quả trả về của step() luôn là 4 giá trị (Legacy API)"""
@@ -143,7 +149,8 @@ class StepCompatibilityWrapper(gym.Wrapper):
 
 original_make = gym.make
 def compatible_make(id, **kwargs):
-    target_id = ENV_ID if id == "CarRacing-v2" else id
+    # Nếu id chứa "CarRacing", ép nó về version chúng ta đã phát hiện là chạy được
+    target_id = ENV_ID if "CarRacing" in id else id
     env = original_make(target_id, **kwargs)
     return StepCompatibilityWrapper(env)
 
