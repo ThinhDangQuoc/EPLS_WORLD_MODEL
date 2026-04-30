@@ -35,7 +35,6 @@ print("✅ Dependencies installed (Box2D fixed)")
 # ## Cell 2: Setup Project from Git & Dataset
 # %%
 GIT_REPO     = "https://github.com/ThinhDangQuoc/EPLS_WORLD_MODEL.git"
-DATASET_PATH = "/kaggle/input/epls-world-model" # Dataset chứa epls_kaggle_assets.zip
 WORK_DIR     = "/kaggle/working/WorldModelPlanning"
 
 # 1. Clone code từ GitHub
@@ -52,29 +51,7 @@ else:
 os.chdir(WORK_DIR)
 sys.path.insert(0, WORK_DIR)
 
-# 2. Giải nén Assets (Checkpoints) vào đúng vị trí nếu chưa có
-def setup_assets():
-    # Giả sử file zip assets được upload lên Kaggle Dataset
-    asset_zip = os.path.join(DATASET_PATH, "epls_kaggle_assets.zip")
-    if os.path.exists(asset_zip):
-        print("📦 Extracting model assets from Dataset...")
-        run(f"unzip -o {asset_zip} -d {WORK_DIR}")
-    else:
-        # Nếu bạn không nén zip mà upload folder thẳng lên Dataset
-        print("🔗 Linking assets from Dataset folders...")
-        for folder in ["mdrnn/checkpoints", "vae/checkpoints"]:
-            src = os.path.join(DATASET_PATH, folder)
-            dst = os.path.join(WORK_DIR, folder)
-            if os.path.exists(src):
-                # Sửa lỗi Python 3.12: shutil.rmtree không cho xóa link
-                if os.path.islink(dst):
-                    os.unlink(dst)
-                elif os.path.isdir(dst):
-                    shutil.rmtree(dst)
-                
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                os.symlink(src, dst)
-                print(f"  ✅ Linked {folder}")
+# (setup_assets removed as we are training from scratch)
 
 # 3. Đảm bảo toàn bộ thư mục là Python Packages (Fix ModuleNotFoundError)
 def fix_python_packages():
