@@ -2,6 +2,10 @@ import os
 import platform
 
 import numpy as np
+# Patch NumPy 2.0 compatibility for legacy libraries (Gym/Box2D)
+if not hasattr(np, 'bool8'): np.bool8 = np.bool_
+if not hasattr(np, 'float'): np.float = float
+if not hasattr(np, 'int'): np.int = int
 from PIL import Image
 from os.path import exists, join
 from torch import multiprocessing
