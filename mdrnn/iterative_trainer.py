@@ -31,7 +31,10 @@ from planning.simulation.agent_wrapper import AgentWrapper
 from environment.environment_factory import get_environment
 from utility.logging.planning_logger import PlanningLogger
 from torch.multiprocessing import Pool, Process, Manager, RLock, Lock, Value
-from mdrnn.iteration_stats.iteration_result import IterationResult
+try:
+    from mdrnn.iteration_stats.iteration_result import IterationResult
+except (ImportError, ModuleNotFoundError):
+    from iteration_stats.iteration_result import IterationResult
 from environment.actions.action_sampler_factory import get_action_sampler
 gym.logger.set_level(40)  # Disable user warnings
 

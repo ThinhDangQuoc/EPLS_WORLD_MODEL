@@ -45,7 +45,6 @@ os.chdir(WORK_DIR)
 sys.path.insert(0, WORK_DIR)
 
 # 2. Giải nén Assets (Checkpoints) vào đúng vị trí nếu chưa có
-# Thường thì assets trong Dataset sẽ được Kaggle mount sẵn, nhưng ta cần đưa chúng vào đúng folder mdrnn/vae
 def setup_assets():
     # Giả sử file zip assets được upload lên Kaggle Dataset
     asset_zip = os.path.join(DATASET_PATH, "epls_kaggle_assets.zip")
@@ -59,12 +58,34 @@ def setup_assets():
             src = os.path.join(DATASET_PATH, folder)
             dst = os.path.join(WORK_DIR, folder)
             if os.path.exists(src):
-                if os.path.exists(dst): shutil.rmtree(dst)
+                # Sửa lỗi Python 3.12: shutil.rmtree không cho xóa link
+                if os.path.islink(dst):
+                    os.unlink(dst)
+                elif os.path.isdir(dst):
+                    shutil.rmtree(dst)
+                
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 os.symlink(src, dst)
                 print(f"  ✅ Linked {folder}")
 
-setup_assets()
+# 3. Đảm bảo toàn bộ thư mục là Python Packages (Fix ModuleNotFoundError)
+def fix_python_packages():
+    print("🛠️ Verifying Python packages...")
+    for root, dirs, files in os.walk(WORK_DIR):
+        if ".git" in root or "__pycache__" in root: continue
+        if "__init__.py" not in files:
+            with open(os.path.join(root, "__init__.py"), "w") as f:
+                pass
+            print(f"  🆕 Created __init__.py in {os.path.relpath(root, WORK_DIR)}")
+    
+    # Ép Python xóa cache để nhận diện package mới
+    import sys
+    for mod in list(sys.modules.keys()):
+        if any(pkg in mod for pkg in ["mdrnn", "vae", "utility", "planning", "environment"]):
+            del sys.modules[mod]
+    print("  🧹 Module cache cleared")
+
+fix_python_packages()
 
 # ---------- Monkey Patch cho Gym/Gymnasium Compatibility ----------
 # Cấu trúc Wrapper thủ công để đảm bảo tương thích mọi phiên bản (Gym/Gymnasium, Python 3.10/3.12)
