@@ -24,7 +24,11 @@ class RolloutGenerator(BaseRolloutGenerator):
                 obs, reward, done, info, action = self._step(environment, obs, action, model)
                 # environment.render()
                 obs = self._compress_frame(obs, is_resize=True)
-                environment.environment.viewer.window.dispatch_events()
+                if hasattr(environment.environment, 'viewer') and environment.environment.viewer is not None:
+                    try:
+                        environment.environment.viewer.window.dispatch_events()
+                    except:
+                        pass
                 actions_rollout.append(action)
                 states_rollout.append(obs)
                 reward_rollout.append(reward)
