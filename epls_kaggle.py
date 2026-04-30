@@ -275,7 +275,26 @@ def checkpoint_exists(experiment_name: str, model="mdrnn") -> bool:
     path = f"{model}/checkpoints/{experiment_name}_{model}_best.tar"
     return os.path.exists(path)
 
+def ensure_dirs():
+    """Tạo các thư mục cần thiết trước khi chạy để tránh lỗi FileNotFoundError."""
+    dirs = [
+        "vae/checkpoints",
+        "mdrnn/checkpoints",
+        "mdrnn/checkpoints/backups",
+        "data_random_raw",
+        "data_expert_raw",
+        "data_mixed_expert",
+        "data_iterative",
+        "planning_test_results",
+        "iteration_stats",
+        "logs"
+    ]
+    for d in dirs:
+        os.makedirs(os.path.join(WORK_DIR, d), exist_ok=True)
+    print("✅ Directory structure initialized")
+
 start_xvfb()
+ensure_dirs()
 print("✅ Helpers ready")
 
 # ==============================================================================
