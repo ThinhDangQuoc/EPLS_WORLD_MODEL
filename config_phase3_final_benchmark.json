@@ -1,5 +1,5 @@
 {
-    "game": "CarRacing-v0",
+    "game": "CarRacing-v2",
     "experiment_name": "iterative_World_Model_Iter_A",
     "forced_vae": "World_Model_Iter_A",
     "latent_size": 64,

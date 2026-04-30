@@ -23,7 +23,7 @@ class SimulatedPlanningController:
         self.is_dream_play = config['is_dream_play']
 
     def _get_action_placeholder(self):
-        if self.config['game'] == 'CarRacing-v0':
+        if self.config['game'] == 'CarRacing-v2':
             return np.array([0., 0., 0.], dtype=np.float32)
         if self.config['game'] == 'viz-doom':
             return [-1]
@@ -31,14 +31,14 @@ class SimulatedPlanningController:
 
 
     def _get_on_key_press(self, event):
-        if self.config['game'] == 'CarRacing-v0':
+        if self.config['game'] == 'CarRacing-v2':
             return self._on_key_press_car(event)
         if self.config['game'] == 'viz-doom':
             return self._on_key_press_viz(event)
         raise Exception(f'No implementation of game controller was found for game: {self.config["game"]}')
 
     def _get_on_key_release(self, event):
-        if self.config['game'] == 'CarRacing-v0':
+        if self.config['game'] == 'CarRacing-v2':
             return self._on_key_release_car(event)
         if self.config['game'] == 'viz-doom':
             return self._on_key_release_viz(event)

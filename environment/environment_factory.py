@@ -3,7 +3,7 @@ from environment.carracing.car_racing_environment import CarRacingEnvironment
 
 
 def get_environment(config):
-    if config['game'] == 'CarRacing-v0':
+    if config['game'] == 'CarRacing-v2':
         return CarRacingEnvironment(config)
     if config['game'] == 'vizdoom-v0':
         # return VizdoomEnvironment(config)

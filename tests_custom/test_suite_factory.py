@@ -9,7 +9,7 @@ from tests_custom.viz_doom.vizdoom_planning_tester import VizDoomPlanningTester
 
 
 def get_planning_tester(config, vae, mdrnn, preprocessor, agent):
-    if config['game'] == 'CarRacing-v0':
+    if config['game'] == 'CarRacing-v2':
         return CarRacingPlanningTester(config, vae, mdrnn, preprocessor, agent)
     if config['game'] == 'vizdoom-v0':
         return VizDoomPlanningTester(config, vae, mdrnn, preprocessor, agent)
@@ -17,7 +17,7 @@ def get_planning_tester(config, vae, mdrnn, preprocessor, agent):
 
 
 def get_model_tester(config, vae, mdrnn, preprocessor):
-    if config['game'] == 'CarRacing-v0':
+    if config['game'] == 'CarRacing-v2':
         return CarRacingModelTester(config, vae, mdrnn, preprocessor)
     if config['game'] == 'vizdoom-v0':
         return NotImplemented()

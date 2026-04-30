@@ -67,7 +67,7 @@ def recreate_tiles(env):
 
 seed = 2
 start_track = 205
-env = gym.make('CarRacing-v0')
+env = gym.make('CarRacing-v2')
 env.seed(seed)  # tiles
 env.reset()
 [env.step([0, 0, 0]) for _ in range(50)]  # env.ZOOM_FOLLOW = False not working

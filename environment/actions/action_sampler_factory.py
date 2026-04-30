@@ -3,7 +3,7 @@ from environment.vizdoom.vizdoom_action_sampler import VizdoomActionSampler
 
 
 def get_action_sampler(config):
-    if config['game'] == 'CarRacing-v0':
+    if config['game'] == 'CarRacing-v2':
         return CarRacingActionSampler(config)
     if config['game'] == 'vizdoom-v0':
         return VizdoomActionSampler(config)
