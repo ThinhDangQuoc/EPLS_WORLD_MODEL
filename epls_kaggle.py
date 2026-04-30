@@ -37,6 +37,16 @@ run(f"{sys.executable} -m pip install -q 'gymnasium[box2d]'")
 run(f"{sys.executable} -m pip install -q shimmy[gym-v21] dill colorama")
 print("✅ Dependencies installed (Box2D fixed)")
 
+def run_main():
+    """Chạy main.py bằng subprocess để đảm bảo output được stream theo thời gian thực."""
+    process = subprocess.Popen(f"{sys.executable} main.py", shell=True, 
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    # Stream output từng dòng
+    for line in process.stdout:
+        print(line, end="")
+        sys.stdout.flush()
+    return process.wait()
+
 # %% [markdown]
 # ## Cell 2: Setup Project from Git & Dataset
 # %%
@@ -294,7 +304,7 @@ if RUN_PHASE in ['all', '1']:
                 "car_racing": {"is_ha_agent_driver": False}
             }
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print(f"✅ {existing_random} random rollouts found — skipping generation.")
 
@@ -309,7 +319,7 @@ if RUN_PHASE in ['all', '1']:
             "latent_size": 64,
             "vae_trainer": {"max_epochs": 20, "is_continue_model": False}
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print("✅ VAE (Random) checkpoint found — skipping.")
 
@@ -329,7 +339,7 @@ if RUN_PHASE in ['all', '1']:
                 "early_stop_after_n_bad_epochs": 5
             }
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print("✅ MDRNN (Random) checkpoint found — skipping.")
 
@@ -354,7 +364,7 @@ if RUN_PHASE in ['all', '1']:
             }
         }
     })
-    exec(open("main.py").read())
+    run_main()
     print("✅ Step 1 done — check planning_test_results/ for scores.")
 
     # ==============================================================================
@@ -402,7 +412,7 @@ if RUN_PHASE in ['all', '2']:
             }
         }
     })
-    exec(open("main.py").read())
+    run_main()
 
     # ── 2C. Final Benchmark with "golden params" (h=20, g=15, 100 trials) ────────
     print("📊 Final Benchmark — Iterative Model (RMHC h=20, g=15, 100 trials)...")
@@ -428,7 +438,7 @@ if RUN_PHASE in ['all', '2']:
             }
         }
     })
-    exec(open("main.py").read())
+    run_main()
     print("✅ Step 2 done.")
 
     # ==============================================================================
@@ -457,7 +467,7 @@ if RUN_PHASE in ['all', '3']:
                 "car_racing": {"is_ha_agent_driver": False}
             }
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print(f"✅ {min(existing_random, 5000)} random rollouts ready for Expert mix.")
 
@@ -476,7 +486,7 @@ if RUN_PHASE in ['all', '3']:
                 "car_racing": {"is_ha_agent_driver": True}
             }
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print(f"✅ {min(existing_expert, 5000)} expert rollouts found — skipping.")
 
@@ -508,7 +518,7 @@ if RUN_PHASE in ['all', '3']:
             "data_dir": "data_mixed_expert",
             "vae_trainer": {"max_epochs": 20, "is_continue_model": False}
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print("✅ VAE (Expert) checkpoint found — skipping.")
 
@@ -528,7 +538,7 @@ if RUN_PHASE in ['all', '3']:
                 "early_stop_after_n_bad_epochs": 5
             }
         })
-        exec(open("main.py").read())
+        run_main()
     else:
         print("✅ MDRNN (Expert) checkpoint found — skipping.")
 
@@ -554,7 +564,7 @@ if RUN_PHASE in ['all', '3']:
             }
         }
     })
-    exec(open("main.py").read())
+    run_main()
     print("✅ Step 3 done.")
 
     # ==============================================================================
