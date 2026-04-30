@@ -26,19 +26,45 @@ run(f"{sys.executable} -m pip install -q shimmy[gym-v21] dill colorama")
 print("✅ Dependencies installed (Box2D fixed)")
 
 # %% [markdown]
-# ## Cell 2: Setup Project & Helpers
+# ## Cell 2: Setup Project from Git & Dataset
 # %%
-DATASET_PATH = "/kaggle/input/epls-world-model/WorldModelPlanning"
+GIT_REPO     = "https://github.com/ThinhDangQuoc/EPLS_WORLD_MODEL.git"
+DATASET_PATH = "/kaggle/input/epls-world-model" # Dataset chứa epls_kaggle_assets.zip
 WORK_DIR     = "/kaggle/working/WorldModelPlanning"
 
+# 1. Clone code từ GitHub
 if not os.path.exists(WORK_DIR):
-    shutil.copytree(DATASET_PATH, WORK_DIR)
-    print(f"✅ Project initialized at {WORK_DIR}")
+    print(f"🚀 Cloning code from {GIT_REPO}...")
+    run(f"git clone {GIT_REPO} {WORK_DIR}")
 else:
-    print(f"🔄 Resuming session in {WORK_DIR}")
+    print(f"🔄 Updating code from Git...")
+    os.chdir(WORK_DIR)
+    run("git pull")
 
 os.chdir(WORK_DIR)
 sys.path.insert(0, WORK_DIR)
+
+# 2. Giải nén Assets (Checkpoints) vào đúng vị trí nếu chưa có
+# Thường thì assets trong Dataset sẽ được Kaggle mount sẵn, nhưng ta cần đưa chúng vào đúng folder mdrnn/vae
+def setup_assets():
+    # Giả sử file zip assets được upload lên Kaggle Dataset
+    asset_zip = os.path.join(DATASET_PATH, "epls_kaggle_assets.zip")
+    if os.path.exists(asset_zip):
+        print("📦 Extracting model assets from Dataset...")
+        run(f"unzip -o {asset_zip} -d {WORK_DIR}")
+    else:
+        # Nếu bạn không nén zip mà upload folder thẳng lên Dataset
+        print("🔗 Linking assets from Dataset folders...")
+        for folder in ["mdrnn/checkpoints", "vae/checkpoints"]:
+            src = os.path.join(DATASET_PATH, folder)
+            dst = os.path.join(WORK_DIR, folder)
+            if os.path.exists(src):
+                if os.path.exists(dst): shutil.rmtree(dst)
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                os.symlink(src, dst)
+                print(f"  ✅ Linked {folder}")
+
+setup_assets()
 
 # ---------- Monkey Patch cho Gym/Gymnasium Compatibility ----------
 # Cấu trúc Wrapper thủ công để đảm bảo tương thích mọi phiên bản (Gym/Gymnasium, Python 3.10/3.12)
