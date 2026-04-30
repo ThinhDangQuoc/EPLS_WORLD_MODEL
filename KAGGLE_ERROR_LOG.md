@@ -46,3 +46,28 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Triệu chứng:** `module 'gymnasium.logger' has no attribute 'set_level'`.
 - **Nguyên nhân:** API của Gymnasium khác với Gym cũ.
 - **Giải pháp:** Bọc lệnh gọi vào `hasattr(gym.logger, 'set_level')`.
+
+## 10. Lỗi Môi Trường Cũ (DeprecatedEnv: CarRacing-v0)
+- **Triệu chứng:** `Environment version v0 for CarRacing is deprecated. Please use CarRacing-v2 instead.`
+- **Nguyên nhân:** Gymnasium không còn hỗ trợ tên `v0` mặc định.
+- **Giải pháp:** Thực hiện tìm và thay thế hàng loạt (Mass-replace) toàn bộ chuỗi `CarRacing-v0` thành `CarRacing-v2` trong tất cả các file `.py` và `.json`.
+
+## 11. Lỗi Xung Đột Git Pull (config.json conflict)
+- **Triệu chứng:** `error: Your local changes to the following files would be overwritten by merge: config.json`.
+- **Nguyên nhân:** File `config.json` bị code tự động thay đổi trên Kaggle, gây xung đột khi chạy lệnh `git pull`.
+- **Giải pháp:** Thêm lệnh `git checkout -- .` trước khi `git pull` để xóa bỏ các thay đổi tạm thời trên Kaggle.
+
+## 12. Lỗi NumPy 2.0 Trong Tiến Trình Con (Sub-process AttributeError)
+- **Triệu chứng:** `AttributeError: module 'numpy' has no attribute 'bool8'` xảy ra ngay cả khi đã vá ở main process.
+- **Nguyên nhân:** Khi dùng `multiprocessing` với method `spawn`, các tiến trình con không nhận được bản vá từ tiến trình chính.
+- **Giải pháp:** Chèn trực tiếp bản vá NumPy vào các file cốt lõi được Worker import: `main.py` và `base_rollout_generator.py`.
+
+## 13. Lỗi Cú Pháp Docstring (SyntaxError: unterminated triple-quoted string)
+- **Triệu chứng:** `SyntaxError: unterminated triple-quoted string literal`.
+- **Nguyên nhân:** Sơ suất khi chèn bản vá vào đầu file làm hỏng cấu trúc dấu ngoặc kép ba `"""`.
+- **Giải pháp:** Dọn dẹp lại đầu file `main.py`, đảm bảo các dấu `"""` được đóng mở chính xác.
+
+## 14. Lỗi Thiếu Bộ Hiển Thị (AttributeError: 'CarRacing' object has no attribute 'viewer')
+- **Triệu chứng:** Crash khi đang gen data: `AttributeError: 'CarRacing' object has no attribute 'viewer'`.
+- **Nguyên nhân:** Code gốc cố gắng gọi `viewer.window.dispatch_events()` nhưng trên Kaggle không có màn hình nên `viewer` không tồn tại.
+- **Giải pháp:** Bọc lệnh gọi vào khối `try-except` và kiểm tra `hasattr(environment.environment, 'viewer')`.

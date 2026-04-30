@@ -50,7 +50,11 @@ class RolloutGenerator(BaseRolloutGenerator):
 
         # Garbage collection of events in viewer
         obs, _, _, _ = environment.step([0,0,0])
-        environment.environment.viewer.window.dispatch_events()
+        if hasattr(environment.environment, 'viewer') and environment.environment.viewer is not None:
+            try:
+                environment.environment.viewer.window.dispatch_events()
+            except:
+                pass
         return obs, car_position
 
     def _step(self, environment, obs, previous_action, model=None):
