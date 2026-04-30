@@ -34,8 +34,11 @@ class CarRacingEnvironment(BaseEnvironment):
         return [self.environment.step([0, 0, 0])[0] for _ in range(50)][-1]
 
     def _randomize_car_pos(self):
-        random_car_position = np.random.randint(len(self.environment.env.track))
-        self.environment.car = Car(self.environment.world, *self.environment.track[random_car_position][1:4])
+        # Sử dụng .unwrapped để truy cập trực tiếp vào thuộc tính của môi trường gốc (CarRacing)
+        # Bỏ qua mọi lớp Wrapper (TimeLimit, StepCompatibilityWrapper)
+        core_env = self.environment.unwrapped
+        random_car_position = np.random.randint(len(core_env.track))
+        core_env.car = Car(core_env.world, *core_env.track[random_car_position][1:4])
         obs, _, _, _ = self.step([0, 0, 0])
         return obs
 

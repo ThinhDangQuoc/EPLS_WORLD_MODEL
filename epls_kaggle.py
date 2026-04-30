@@ -138,6 +138,15 @@ except ImportError:
     ENV_ID = "CarRacing-v2"
     print(f"✨ Using Legacy Gym ({ENV_ID})")
 
+# Khôi phục cơ chế ủy quyền thuộc tính (attribute delegation) cho các Wrapper của Gymnasium
+# Trong Gymnasium >= 0.26, Wrapper không còn tự động chuyển tiếp getattr() tới env bên dưới.
+if not hasattr(gym.Wrapper, '__getattr__'):
+    def wrapper_getattr(self, name):
+        if name == "env":
+            return self.__dict__["env"]
+        return getattr(self.env, name)
+    gym.Wrapper.__getattr__ = wrapper_getattr
+
 class StepCompatibilityWrapper(gym.Wrapper):
     """Ép kết quả trả về của step() luôn là 4 giá trị (Legacy API)"""
     def __init__(self, env):
@@ -161,6 +170,10 @@ class StepCompatibilityWrapper(gym.Wrapper):
             return results[0]
         return results
 
+    def __getattr__(self, name):
+        # Đảm bảo StepCompatibilityWrapper cũng có thể truy cập các thuộc tính của môi trường gốc
+        return getattr(self.env, name)
+
     def step(self, action):
         results = self.env.step(action)
         if len(results) == 5:
@@ -172,6 +185,12 @@ original_make = gym.make
 def compatible_make(id, **kwargs):
     # Nếu id chứa "CarRacing", ép nó về version chúng ta đã phát hiện là chạy được
     target_id = ENV_ID if "CarRacing" in id else id
+    
+    # Gymnasium yêu cầu render_mode khi khởi tạo nếu muốn gọi .render() sau này
+    if "gymnasium" in str(type(gym)):
+        if "render_mode" not in kwargs:
+            kwargs["render_mode"] = "rgb_array"
+            
     env = original_make(target_id, **kwargs)
     return StepCompatibilityWrapper(env)
 

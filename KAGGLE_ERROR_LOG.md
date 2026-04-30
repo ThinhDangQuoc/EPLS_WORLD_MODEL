@@ -98,3 +98,8 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Giải pháp:** Cập nhật `StepCompatibilityWrapper` trong `epls_kaggle.py`:
     - Thêm hàm `.seed(s)` để lưu lại seed.
     - Ghi đè hàm `.reset()` để truyền seed vào và chỉ trả về `obs` (để tương thích với code cũ).
+
+## 20. Lỗi không thể truy cập thuộc tính môi trường qua Wrapper (AttributeError: 'TimeLimit' object has no attribute 'track')
+- **Triệu chứng:** `AttributeError: 'TimeLimit' object has no attribute 'track'` (hoặc `world`, `car`).
+- **Nguyên nhân:** Kể từ Gymnasium 0.26, lớp `Wrapper` không còn tự động ủy quyền (delegate) việc truy cập thuộc tính qua hàm `__getattr__`. Do đó, khi môi trường bị bọc bởi `TimeLimit` hoặc `StepCompatibilityWrapper`, các biến đặc thù của `CarRacing` sẽ không thể truy cập trực tiếp.
+- **Giải pháp:** Thực hiện monkey-patch cho `gym.Wrapper` trong `epls_kaggle.py` để khôi phục lại hàm `__getattr__` truyền thống, giúp các wrapper tự động tìm kiếm thuộc tính ở môi trường bên trong (inner env).

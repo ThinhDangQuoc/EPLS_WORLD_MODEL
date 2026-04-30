@@ -38,4 +38,4 @@ class BaseEnvironment:
         self.environment.close()
 
     def get_current_reward(self):
-        return self.environment.env.reward
+        return self.environment.unwrapped.reward
