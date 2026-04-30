@@ -91,3 +91,10 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Triệu chứng:** `gymnasium.error.DeprecatedEnv: Environment version v2 for CarRacing is deprecated. Please use CarRacing-v3 instead.`
 - **Nguyên nhân:** Phiên bản Gymnasium mới trên Kaggle đã khai tử `v2` và yêu cầu dùng `v3`.
 - **Giải pháp:** Cập nhật `epls_kaggle.py` để tự động kiểm tra xem `CarRacing-v3` có tồn tại không bằng `gym.spec()`. Nếu có thì dùng `v3`, nếu không thì fallback về `v2`. Đồng thời cập nhật `compatible_make` để ánh xạ mọi yêu cầu "CarRacing" về phiên bản khả dụng nhất.
+
+## 19. Lỗi thiếu hàm seed() và thay đổi kết quả reset() (AttributeError: 'StepCompatibilityWrapper' object has no attribute 'seed')
+- **Triệu chứng:** `AttributeError: 'StepCompatibilityWrapper' object has no attribute 'seed'` và lỗi unpack khi gọi `reset()`.
+- **Nguyên nhân:** Gymnasium (v21+) đã xóa hàm `.seed()` (gộp vào `reset(seed=...)`) và thay đổi kết quả trả về của `.reset()` thành một tuple `(obs, info)`.
+- **Giải pháp:** Cập nhật `StepCompatibilityWrapper` trong `epls_kaggle.py`:
+    - Thêm hàm `.seed(s)` để lưu lại seed.
+    - Ghi đè hàm `.reset()` để truyền seed vào và chỉ trả về `obs` (để tương thích với code cũ).

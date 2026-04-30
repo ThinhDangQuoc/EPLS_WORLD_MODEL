@@ -140,6 +140,27 @@ except ImportError:
 
 class StepCompatibilityWrapper(gym.Wrapper):
     """Ép kết quả trả về của step() luôn là 4 giá trị (Legacy API)"""
+    def __init__(self, env):
+        super().__init__(env)
+        self._next_seed = None
+
+    def seed(self, seed=None):
+        # Legacy seed() method, lưu lại để dùng trong reset() tiếp theo
+        self._next_seed = seed
+        return [seed]
+
+    def reset(self, **kwargs):
+        # Nếu có seed được set trước đó qua .seed(), ưu tiên dùng nó
+        if self._next_seed is not None:
+            kwargs['seed'] = self._next_seed
+            self._next_seed = None
+            
+        results = self.env.reset(**kwargs)
+        # Gymnasium reset() trả về (obs, info), legacy Gym chỉ trả về obs
+        if isinstance(results, tuple) and len(results) == 2:
+            return results[0]
+        return results
+
     def step(self, action):
         results = self.env.step(action)
         if len(results) == 5:
