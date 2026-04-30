@@ -1,0 +1,26 @@
+# Data and Checkpoints
+data_random_raw/
+data_expert_raw/
+data_mixed_expert/
+data_iterative/
+*.npz
+*.tar
+*.pickle
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+logs/
+planning_test_results/
+iteration_stats/
