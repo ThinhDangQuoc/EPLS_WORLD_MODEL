@@ -253,7 +253,6 @@ class MDRNNTrainer:
         if torch.cuda.is_available():
             if platform.system() == "Linux":
                 print("GPU enabled on Linux machine...")
-                torch.cuda.set_device(2)
             print(f'Cuda current device: {torch.cuda.current_device()}')
             return torch.device('cuda')
         print(f'Using CPU - Since no GPU was found or GPU driver outdated - ')

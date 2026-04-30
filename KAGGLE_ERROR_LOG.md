@@ -81,3 +81,8 @@ File này ghi lại các lỗi phát sinh trong quá trình chạy project EPLS 
 - **Triệu chứng:** Hàng nghìn dòng thanh tiến trình `tqdm` và thông báo in ra liên tục làm treo trình duyệt.
 - **Nguyên nhân:** Sử dụng `tqdm` với `position` trong đa tiến trình trên Notebook không được hỗ trợ tốt; và in thông báo lưu file quá thường xuyên.
 - **Giải pháp:** Gỡ bỏ `tqdm` ở vòng lặp trong và ẩn các lệnh `print` kết thúc mỗi Rollout. Chỉ giữ lại log ở mức độ thread/stage.
+
+## 17. Lỗi Hardcode GPU (AcceleratorError: CUDA error: invalid device ordinal)
+- **Triệu chứng:** Crash khi bắt đầu huấn luyện MDRNN với lỗi `invalid device ordinal`.
+- **Nguyên nhân:** Code trong `mdrnn/mdrnn_trainer.py` hardcode gọi `torch.cuda.set_device(2)`, nhưng máy Kaggle không có đủ 3 GPU.
+- **Giải pháp:** Xóa bỏ lệnh `torch.cuda.set_device(2)`, để PyTorch tự động nhận diện và sử dụng thiết bị mặc định (thường là `cuda:0`).
