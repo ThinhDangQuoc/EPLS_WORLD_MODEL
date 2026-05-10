@@ -26,3 +26,5 @@ venv/
 logs/
 planning_test_results/
 iteration_stats/
+KAGGLE_README.md
+KAGGLE_ERROR_LOG.md

@@ -31,9 +31,10 @@ class RHEA(AbstractRollingHorizon):
         self.mutation_operator = self.evolution_handler.get_mutation_operator()
         self.crossover_operator = self.evolution_handler.get_crossover_operator()
 
-    def search(self, environment, latent, hidden):
-        self.latent = latent
-        self.hidden = hidden
+    def search(self, simulated_environment, initial_latent_state, initial_hidden_state):
+        environment = simulated_environment
+        self.latent = initial_latent_state
+        self.hidden = initial_hidden_state
         self.elite_history = []
         self.current_elite = None
         self.population = self.initialize_population(environment, self.population_size)
@@ -69,10 +70,7 @@ class RHEA(AbstractRollingHorizon):
             yield individual
 
     def _generate_individual(self, environment, horizon):
-        previous_action = None
-        action_sequence = []
-        for _ in range(horizon):
-            action_sequence.append(environment.sample())
+        action_sequence = [environment.sample() for _ in range(horizon)]
         return Individual(action_sequence)
 
     def evaluate_population(self, population, environment, is_parallel=True):
@@ -161,5 +159,7 @@ class RHEA(AbstractRollingHorizon):
         return elite
 
     def _append_elite(self, individual):
-        is_new_elite = len(self.elite_history) is 0 or individual.age is not self.current_elite.age
+        is_new_elite = (self.current_elite is None
+                        or len(self.elite_history) == 0
+                        or individual.age != self.current_elite.age)
         self.elite_history.append((individual.fitness, is_new_elite, individual.action_sequence))

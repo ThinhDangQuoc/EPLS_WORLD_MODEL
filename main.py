@@ -1,14 +1,4 @@
-""" Main entrypoint for running the solution """
-#  Copyright (c) 2020, - All Rights Reserved
-#  This file is part of the Evolutionary Planning on a Learned World Model thesis.
-#  Unauthorized copying of this file, via any medium is strictly prohibited without the consensus of the authors.
-#  Written by Thor V.A.N. Olesen <thorolesen@gmail.com> & Dennis T.T. Nguyen <dennisnguyen3000@yahoo.dk>.
-import numpy as np
-# Patch NumPy 2.0 compatibility for legacy libraries (Gym/Box2D)
-if not hasattr(np, 'bool8'): np.bool8 = np.bool_
-if not hasattr(np, 'float'): np.float = float
-if not hasattr(np, 'int'): np.int = int
-
+"""Main entrypoint for running the EPLS solution."""
 import json
 from vae.vae import VAE
 from mdrnn.mdrnn import MDRNN
@@ -20,9 +10,10 @@ from tuning.ntbea_wrapper import PlanningNTBEAWrapper
 from utility.rollout_handling.rollout_generator_factory import get_rollout_generator
 from tests_custom.test_suite_factory import get_model_tester, get_planning_tester
 from environment.environment_factory import get_environment
-from mdrnn.mdrnn_trainer import MDRNNTrainer as MDRNNTrainer
+from mdrnn.mdrnn_trainer import MDRNNTrainer
 from planning.simulated_planning_controller import SimulatedPlanningController
 from planning.agent_factory import get_planning_agent
+
 colorama_init()
 
 
@@ -31,8 +22,7 @@ class Main:
         self.config = config
         self.frame_preprocessor = Preprocessor(self.config['preprocessor'])
         self.mdrnn_trainer = MDRNNTrainer(self.config, self.frame_preprocessor)
-        self.environment = get_environment(config)  # Set environment
-
+        self.environment = get_environment(config)
 
     def generate_data(self):
         data_handler = get_rollout_generator(self.config)
@@ -41,7 +31,7 @@ class Main:
     def train_or_reload_vae(self):
         vae_trainer = VaeTrainer(self.config, self.frame_preprocessor)
         vae = VAE(self.config)
-        return vae_trainer.train(vae) if config["is_train_vae"] else vae_trainer.reload_model(vae)
+        return vae_trainer.train(vae) if self.config["is_train_vae"] else vae_trainer.reload_model(vae)
 
     def train_or_reload_mdrnn(self):
         mdrnn = MDRNN(num_actions=self.environment.action_sampler.num_actions,
@@ -49,7 +39,7 @@ class Main:
                       num_gaussians=self.config['mdrnn']['num_gaussians'],
                       num_hidden_units=self.config['mdrnn']['hidden_units'])
 
-        if config["is_iterative_train_mdrnn"]:
+        if self.config["is_iterative_train_mdrnn"]:
             return self._iterative_mdrnn_training(mdrnn)
         elif self.config["is_train_mdrnn"]:
             return self._standard_mdrnn_training(mdrnn)
@@ -62,10 +52,9 @@ class Main:
 
     def _iterative_mdrnn_training(self, mdrnn):
         planning_agent = get_planning_agent(self.config)
-        iterative_trainer = IterativeTrainer(config, planning_agent, main.mdrnn_trainer)
+        iterative_trainer = IterativeTrainer(self.config, planning_agent, self.mdrnn_trainer)
         iterative_trainer.train()
         self.mdrnn_trainer.reload_model(mdrnn)
-        return
 
     def run_ntbea_tuning(self, vae, mdrnn):
         agent = get_planning_agent(self.config)
@@ -85,20 +74,19 @@ class Main:
     def play_game(self, vae, mdrnn):
         print('---- START PLAYING ----')
         agent = get_planning_agent(self.config)
-        game_controller = SimulatedPlanningController(config, main.frame_preprocessor, vae, mdrnn)
+        game_controller = SimulatedPlanningController(self.config, self.frame_preprocessor, vae, mdrnn)
         num_games, average_steps, average_reward = 10, 0, 0
         for i in range(num_games):
             total_steps, total_reward, total_simulated_reward = game_controller.play_game(agent, self.environment)
             average_steps += total_steps
             average_reward += total_reward
             print(f"Game: {i} | Total steps: {total_steps} | Total reward: {total_reward}")
-            print(f"Average steps: {average_steps / num_games} | Average reward: {average_reward / num_games}")
+        print(f"Average steps: {average_steps / num_games} | Average reward: {average_reward / num_games}")
 
-# MAIN LOOP ###########################
-with open('config.json') as config_file:
-    config = json.load(config_file)
 
 if __name__ == '__main__':
+    with open('config.json') as config_file:
+        config = json.load(config_file)
 
     session_name = config['experiment_name']
     print(f'Session: {session_name}')

@@ -37,7 +37,7 @@ def reload_model(file_location):
 
     if not exists(file_location):
         raise Exception('No MDRNN model found...')
-    state = torch.load(file_location, map_location=torch.device('cpu'))
+    state = torch.load(file_location, map_location=torch.device('cpu'), weights_only=True)
     mdrnn.load_state_dict(state['state_dict'])
     print(f'Reloaded MDRNN model')
     return mdrnn

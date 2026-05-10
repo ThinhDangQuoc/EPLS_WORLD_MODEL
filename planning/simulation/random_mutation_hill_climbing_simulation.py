@@ -6,13 +6,11 @@
 
 import copy
 import torch
-import numpy as np
 from concurrent.futures import as_completed
 from planning.interfaces.individual import Individual
 from tuning.evolution_handler import EvolutionHandler
 from concurrent.futures.thread import ThreadPoolExecutor
 from planning.interfaces.abstract_hill_climb_simulation import AbstractRandomMutationHillClimbing
-from tqdm import tqdm
 
 
 class RMHC(AbstractRandomMutationHillClimbing):
@@ -28,9 +26,10 @@ class RMHC(AbstractRandomMutationHillClimbing):
         self.evolution_handler = EvolutionHandler(self.horizon)
         self.mutation_operator = self.evolution_handler.get_mutation_operator()
 
-    def search(self, environment, latent, hidden):
-        self.latent = latent
-        self.hidden = hidden
+    def search(self, simulated_environment, initial_latent_state, initial_hidden_state):
+        environment = simulated_environment
+        self.latent = initial_latent_state
+        self.hidden = initial_hidden_state
         self.elite_history = []
         self.current_elite = self._initialize_individual(environment)
         self._evaluate_individual(self.current_elite, environment)
@@ -119,5 +118,7 @@ class RMHC(AbstractRandomMutationHillClimbing):
             individual.fitness += total_reward
 
     def _append_elite(self, individual):
-        is_new_elite = len(self.elite_history) is 0 or individual.age is not self.current_elite.age
+        is_new_elite = (self.current_elite is None
+                        or len(self.elite_history) == 0
+                        or individual.age != self.current_elite.age)
         self.elite_history.append((individual.fitness, is_new_elite, individual.action_sequence))

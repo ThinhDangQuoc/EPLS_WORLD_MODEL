@@ -251,7 +251,7 @@ class BasePlanningTester(BaseTester):
 
     def _get_best_trial_action_and_reward(self, test_result):
         trial_seeds = None
-        if len(test_result) is 5:  # 5 = testname, actions, finalrewards, elites, seeds
+        if len(test_result) == 5:  # 5 = testname, actions, finalrewards, elites, seeds
             test_name, trial_actions, trial_rewards, trial_elites, trial_seeds = test_result
         else:
             test_name, trial_actions, trial_rewards, trial_elites = test_result

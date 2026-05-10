@@ -5,10 +5,10 @@
 #  Written by Thor V.A.N. Olesen <thorolesen@gmail.com> & Dennis T.T. Nguyen <dennisnguyen3000@yahoo.dk>.
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class AbstractRandomMutationHillClimbing(ABC):
-    action = int
 
     @abstractmethod
     def __init__(self, horizon, max_generations, is_shift_buffer, is_rollout, max_rollouts=1, rollout_length=None) -> None:
@@ -21,5 +21,5 @@ class AbstractRandomMutationHillClimbing(ABC):
         super().__init__()
 
     @abstractmethod
-    def search(self, simulated_environment, initial_latent_state, initial_hidden_state) -> action:
+    def search(self, simulated_environment, initial_latent_state, initial_hidden_state) -> Any:
         pass

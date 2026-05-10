@@ -29,6 +29,7 @@ class SimulatedEnvironment:
 
         # rendering
         self.monitor = None
+        self.figure = None
         self.figure_num = random.randint(0, 999)
         self.current_reconstruction = None
 
@@ -97,7 +98,7 @@ class SimulatedEnvironment:
 
     def _reset_monitor(self):
         if not self.monitor:
-            plt.figure(num=self.figure_num)
+            self.figure = plt.figure(num=self.figure_num)
             plt.clf()
             self.monitor = plt.imshow(X=np.zeros((self.config['preprocessor']['img_width'],
                                                   self.config['preprocessor']['img_height'],
@@ -121,8 +122,9 @@ class SimulatedEnvironment:
             self._reset_monitor()
         plt.figure(num=self.figure_num)
         plt.title('VAE Reconstruction') if reconstruction is not None else plt.title('MDRNN Reconstruction')
-        reconstruction = self.current_reconstruction if reconstruction is None else reconstruction.squeeze().permute(1, 2, 0)  # align image dimensions
-        self.monitor.set_data(reconstruction)
+        frame = self.current_reconstruction if reconstruction is None else reconstruction.squeeze().permute(1, 2, 0)
+        if self.monitor is not None:
+            self.monitor.set_data(frame)
         plt.pause(.01)
 
     def get_hidden_zeros_state(self):

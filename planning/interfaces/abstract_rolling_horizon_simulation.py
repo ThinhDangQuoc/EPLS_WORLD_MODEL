@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 
 
 class AbstractRollingHorizon(ABC):
-    action = int
 
     @abstractmethod
     def __init__(self, population_size, horizon, max_generations, is_shift_buffer, is_rollout, max_rollouts=1, rollout_length=None) -> None:
@@ -22,5 +21,5 @@ class AbstractRollingHorizon(ABC):
         super().__init__()
 
     @abstractmethod
-    def search(self, simulated_environment, initial_latent_state, initial_hidden_state) -> action:
+    def search(self, simulated_environment, initial_latent_state, initial_hidden_state):
         pass

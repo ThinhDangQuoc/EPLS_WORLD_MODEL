@@ -1,7 +1,7 @@
 import time
 from tqdm import tqdm
 from tests_custom.base_planning_tester import BasePlanningTester, TEST_NAME, ELITES, CUSTOM_SEED, ACTION_HISTORY
-from gym.envs.box2d.car_dynamics import Car
+from gymnasium.envs.box2d.car_dynamics import Car
 
 # custom args
 OPTIMAL_STEPS = 'optimal_steps'
@@ -250,7 +250,8 @@ class PlanningTester(BasePlanningTester):
     def _set_car_position(self, start_track, environment):
         if start_track == 1:
             return
-        environment.environment.env.car = Car(environment.environment.env.world, *environment.environment.env.track[start_track][1:4])
+        core_env = environment.environment.unwrapped
+        core_env.car = Car(core_env.world, *core_env.track[start_track][1:4])
 
     def _reward_diff_percentage(self, actual, control):
         return round((actual-control) / 100) if abs(actual) == 0 else round((actual-control) / abs(actual) * 100)

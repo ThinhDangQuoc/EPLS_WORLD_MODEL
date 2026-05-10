@@ -84,3 +84,22 @@ Chạy tuần tự từng cell theo thứ tự:
    Kaggle tự lưu `/kaggle/working` sau session.
 
 4. **TensorBoard:** Kaggle chưa hỗ trợ native TensorBoard, nhưng logs được lưu để xem sau.
+
+
+⏱️ Ước tính thời gian từng Phase
+Phase 1: Random Model (Khoảng 4.5 - 6 tiếng)
+
+Sinh 5,000 Random Rollouts (CPU): ~2-3 tiếng.
+Huấn luyện VAE (GPU - 20 Epochs): ~45 phút.
+Huấn luyện MDRNN (GPU - 20 Epochs): ~1 tiếng.
+Benchmark Planning: ~30 phút.
+Phase 2: Iterative Model (Khoảng 4 - 5.5 tiếng)
+
+Vòng lặp 5 Iteration (Gen data tự động + Re-train MDRNN): ~3-4.5 tiếng.
+Benchmark Planning (MDRNN cập nhật): ~30 phút.
+Phase 3: Expert Model (Khoảng 6.5 - 8.5 tiếng)
+
+Sinh 5,000 Expert Rollouts (Bot điều khiển tay đua): ~3-4 tiếng.
+Huấn luyện VAE (trên bộ dữ liệu gộp 10,000 rollouts): ~1.5 tiếng.
+Huấn luyện MDRNN (trên bộ dữ liệu gộp): ~1.5 tiếng.
+Benchmark Planning: ~30 phút.

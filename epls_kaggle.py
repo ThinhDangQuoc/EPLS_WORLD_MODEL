@@ -10,7 +10,6 @@
 # ## Cell 1: Install Dependencies
 # %%
 import subprocess, sys, os, json, shutil, time, glob
-import numpy as np
 
 # ==============================================================================
 # KAGGLE EXECUTION CONTROL
@@ -18,10 +17,7 @@ import numpy as np
 RUN_PHASE = os.environ.get("EPLS_RUN_PHASE", "all")
 # ==============================================================================
 
-# Vá lỗi tương thích NumPy 2.0 cho các thư viện cũ (Gym, Box2D)
-if not hasattr(np, 'bool8'): np.bool8 = np.bool_
-if not hasattr(np, 'float'): np.float = float
-if not hasattr(np, 'int'): np.int = int
+# NumPy 2.x removed deprecated aliases (bool8, float, int) — no compat patch needed
 
 def run(cmd):
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -42,6 +38,7 @@ def run_main():
     process = subprocess.Popen(f"{sys.executable} main.py", shell=True, 
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     # Stream output từng dòng
+    assert process.stdout is not None
     for line in process.stdout:
         print(line, end="")
         sys.stdout.flush()
@@ -131,93 +128,11 @@ def fix_python_packages():
 
 fix_python_packages()
 
-# ---------- Monkey Patch cho Gym/Gymnasium Compatibility ----------
-# Cấu trúc Wrapper thủ công để đảm bảo tương thích mọi phiên bản (Gym/Gymnasium, Python 3.10/3.12)
-try:
-    import gymnasium as gym
-    # Tự động phát hiện version mới nhất (v3) hoặc fallback v2
-    ENV_ID = "CarRacing-v3"
-    try:
-        gym.spec(ENV_ID)
-        print(f"✨ Using Gymnasium ({ENV_ID})")
-    except:
-        ENV_ID = "CarRacing-v2"
-        print(f"✨ Using Gymnasium ({ENV_ID})")
-except ImportError:
-    import gym
-    ENV_ID = "CarRacing-v2"
-    print(f"✨ Using Legacy Gym ({ENV_ID})")
+ENV_ID = "CarRacing-v2"
+print(f"✨ Using Gymnasium ({ENV_ID})")
 
-# Khôi phục cơ chế ủy quyền thuộc tính (attribute delegation) cho các Wrapper của Gymnasium
-# Trong Gymnasium >= 0.26, Wrapper không còn tự động chuyển tiếp getattr() tới env bên dưới.
-if not hasattr(gym.Wrapper, '__getattr__'):
-    def wrapper_getattr(self, name):
-        if name == "env":
-            return self.__dict__.get("env")
-        
-        # Tránh lỗi KeyError/AttributeError khi Wrapper đang trong quá trình khởi tạo (chưa có .env)
-        if "env" in self.__dict__:
-            return getattr(self.__dict__["env"], name)
-        
-        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
-        
-    gym.Wrapper.__getattr__ = wrapper_getattr
-
-class StepCompatibilityWrapper(gym.Wrapper):
-    """Ép kết quả trả về của step() luôn là 4 giá trị (Legacy API)"""
-    def __init__(self, env):
-        super().__init__(env)
-        self._next_seed = None
-
-    def seed(self, seed=None):
-        # Legacy seed() method, lưu lại để dùng trong reset() tiếp theo
-        self._next_seed = seed
-        return [seed]
-
-    def reset(self, **kwargs):
-        # Nếu có seed được set trước đó qua .seed(), ưu tiên dùng nó
-        if self._next_seed is not None:
-            kwargs['seed'] = self._next_seed
-            self._next_seed = None
-            
-        results = self.env.reset(**kwargs)
-        # Gymnasium reset() trả về (obs, info), legacy Gym chỉ trả về obs
-        if isinstance(results, tuple) and len(results) == 2:
-            return results[0]
-        return results
-
-    def __getattr__(self, name):
-        # Đảm bảo StepCompatibilityWrapper cũng có thể truy cập các thuộc tính của môi trường gốc
-        return getattr(self.env, name)
-
-    def step(self, action):
-        # Gymnasium yêu cầu action là numpy array để gọi .astype() bên trong env lõi
-        if isinstance(action, (list, tuple)):
-            action = np.array(action, dtype=np.float32)
-
-        results = self.env.step(action)
-        if len(results) == 5:
-            # obs, reward, terminated, truncated, info
-            return results[0], results[1], results[2] or results[3], results[4]
-        return results
-
-original_make = gym.make
-def compatible_make(id, **kwargs):
-    # Nếu id chứa "CarRacing", ép nó về version chúng ta đã phát hiện là chạy được
-    target_id = ENV_ID if "CarRacing" in id else id
-    
-    # Gymnasium yêu cầu render_mode khi khởi tạo nếu muốn gọi .render() sau này
-    if "gymnasium" in str(type(gym)):
-        if "render_mode" not in kwargs:
-            kwargs["render_mode"] = "rgb_array"
-            
-    env = original_make(target_id, **kwargs)
-    return StepCompatibilityWrapper(env)
-
-gym.make = compatible_make
-import sys
-sys.modules['gym'] = gym 
-print("✅ Manual StepCompatibilityWrapper applied")
+# All environments now use gymnasium's native 5-tuple step API directly.
+# No compatibility wrappers needed.
 
 # ---------- Xvfb helper ----------
 _xvfb_proc = None

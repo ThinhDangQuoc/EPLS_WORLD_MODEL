@@ -88,7 +88,7 @@ class VaeTrainer:
         reload_file = join(self.model_dir, self.best_vae_filename)
         if not exists(reload_file):
             raise Exception('No VAE model found...')
-        state = torch.load(reload_file, map_location=device if device else self.device)
+        state = torch.load(reload_file, map_location=device if device else self.device, weights_only=True)
         vae.load_state_dict(state['state_dict'])
         print('Reloaded VAE model')
         return vae
@@ -100,10 +100,10 @@ class VaeTrainer:
         reload_file = reload_file if exists(reload_file) else best_file
 
         if exists(reload_file) and self.config['vae_trainer']['is_continue_model']:
-            state = torch.load(reload_file, map_location=self.device)
+            state = torch.load(reload_file, map_location=self.device, weights_only=True)
             best_test_loss = None
             if exists(best_file):
-                best_state = torch.load(best_file, map_location=self.device)
+                best_state = torch.load(best_file, map_location=self.device, weights_only=True)
                 best_test_loss = best_state['precision']
                 print(f"Reloading vae at epoch {state['epoch']}, with best test error {best_test_loss} at epoch {best_state['epoch']}")
             else:

@@ -22,6 +22,7 @@ from torchvision import transforms
 from torch.distributions import Normal, Categorical
 from torch.utils.data import DataLoader
 from mdrnn.learning import EarlyStopping
+# ReduceLROnPlateau is imported from torch.optim.lr_scheduler (already above)
 from utility.logging.model_training_logger import ModelTrainingLogger
 from utility.rollout_handling.mdrnn_loaders import RolloutSequenceDataset
 
@@ -171,7 +172,7 @@ class MDRNNTrainer:
 
         if not exists(reload_file):
             raise Exception('No MDRNN model found...')
-        state = torch.load(reload_file, map_location=device if device else self.device)
+        state = torch.load(reload_file, map_location=device if device else self.device, weights_only=True)
         mdrnn.load_state_dict(state['state_dict'])
         print(f'Reloaded MDRNN model - {state["epoch"]}')
         return mdrnn
@@ -183,10 +184,10 @@ class MDRNNTrainer:
         reload_file = reload_file if exists(reload_file) and not self.is_iterative else best_file
 
         if exists(reload_file) and self.config['mdrnn_trainer']['is_continue_model']:
-            state = torch.load(reload_file, map_location=self.device)
+            state = torch.load(reload_file, map_location=self.device, weights_only=True)
             best_test_loss = None
             if exists(best_file):
-                best_state = torch.load(best_file, map_location=self.device)
+                best_state = torch.load(best_file, map_location=self.device, weights_only=True)
                 best_test_loss = best_state['precision']
                 print(f"Reloading mdrnn at epoch {state['epoch']}, with best test error {best_test_loss} at epoch {best_state['epoch']}")
             else:

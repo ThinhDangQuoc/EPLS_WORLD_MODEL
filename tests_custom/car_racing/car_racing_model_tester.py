@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.spatial.distance as dist
 from tests_custom.base_tester import BaseTester
-from gym.envs.box2d.car_dynamics import Car
+from gymnasium.envs.box2d.car_dynamics import Car
 from environment.simulated_environment import SimulatedEnvironment
 
 
@@ -154,10 +154,10 @@ class ModelTester(BaseTester):
         return total_reward
 
     def _set_car_pos(self, start_track, environment):
-        if start_track is 1:
+        if start_track == 1:
             return
-        environment.environment.env.car = Car(environment.environment.env.world,
-                                                   *environment.environment.env.track[start_track][1:4])
+        core_env = environment.environment.unwrapped
+        core_env.car = Car(core_env.world, *core_env.track[start_track][1:4])
 
     def _print_results(self, total_reward_real, total_full_sim_reward, total_partial_reward_sim, avg_recon_diff):
         reward_pct_diff = round((total_reward_real - total_partial_reward_sim) / abs(total_partial_reward_sim) * 100)

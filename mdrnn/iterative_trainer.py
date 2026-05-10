@@ -4,13 +4,7 @@
     3) Test MDRNN and store statistics of agent planning performance
     4) Repeat until l iterations satisfied or reward 900 across 100 games completed
 """
-#  Copyright (c) 2020, - All Rights Reserved
-#  This file is part of the Evolutionary Planning on a Learned World Model thesis.
-#  Unauthorized copying of this file, via any medium is strictly prohibited without the consensus of the authors.
-#  Written by Thor V.A.N. Olesen <thorolesen@gmail.com> & Dennis T.T. Nguyen <dennisnguyen3000@yahoo.dk>.
-
 import os
-import gym
 import time
 import torch
 import pickle
@@ -24,7 +18,7 @@ from vae.vae import VAE
 from mdrnn.mdrnn import MDRNN
 from os.path import join, exists
 from vae.vae_trainer import VaeTrainer
-from gym.envs.box2d.car_dynamics import Car
+from gymnasium.envs.box2d.car_dynamics import Car
 from utility.preprocessor import Preprocessor
 from tests_custom.test_suite_factory import get_planning_tester
 from planning.simulation.agent_wrapper import AgentWrapper
@@ -36,11 +30,13 @@ try:
 except (ImportError, ModuleNotFoundError):
     from iteration_stats.iteration_result import IterationResult
 from environment.actions.action_sampler_factory import get_action_sampler
-if hasattr(gym.logger, 'set_level'):
-    gym.logger.set_level(40)  # Disable user warnings
+from typing import Any
+
+# Module-level globals populated by multiprocessing pool initializer
+rollout_lock: Any = None
+rollout_counter: Any = None
 
 if platform.system() == "Darwin" or platform.system() == "Linux":
-    print("Spawn method enabled over fork on Mac OSX / Linux")
     multiprocessing.set_start_method("spawn", force=True)
 
 
@@ -64,9 +60,9 @@ class IterativeTrainer:
         self.is_replay_buffer = config["iterative_trainer"]["replay_buffer"]['is_replay_buffer']
         self.max_buffer_size = config["iterative_trainer"]["replay_buffer"]['max_buffer_size']
         self._rollout_counter = self._get_rollout_file_count()
+
         if not exists(self.iteration_stats_dir):
             os.mkdir(self.iteration_stats_dir)
-
         if not exists(self.data_dir):
             os.mkdir(self.data_dir)
 
@@ -80,7 +76,7 @@ class IterativeTrainer:
             test_threads = []
             start_time = time.time()
 
-            if iterations_count == 0:  # Pre-test non iterative model for baseline
+            if iterations_count == 0:
                 iteration_results[iterations_count] = IterationResult(iteration=0)
                 self._test_planning(iteration=0, iteration_results=iteration_results, test_threads=test_threads)
 
@@ -88,26 +84,26 @@ class IterativeTrainer:
                 iterations_count += 1
                 iteration_results[iterations_count] = IterationResult(iteration=iterations_count)
 
-                self._generate_rollouts(iterations_count)  # Generate n planning rollouts of length T
+                self._generate_rollouts(iterations_count)
                 self._train_mdrnn(copy(iterations_count), iteration_results)
-                self._test_planning(iterations_count, iteration_results, test_threads)  # Test plan performance
+                self._test_planning(iterations_count, iteration_results, test_threads)
 
                 print(f'Iterations for model: {iterations_count} - {round((time.time() - start_time), 2)} seconds')
 
-            [p.join() for p in test_threads]  # ensure all tests are done before exit
+            [p.join() for p in test_threads]
             print('--- Iterative Training Completed ---\n')
             self._save_iteration_stats(iteration_results)
 
     def _generate_rollouts(self, iteration):
         self.threads = self.num_rollouts if self.num_rollouts < self.threads else self.threads
-        self._set_torch_threads(threads=1)  # 1 to ensure underlying threads only uses 1 thread to prevent hidden threading - speed fix when multithreaded rollout generation
+        self._set_torch_threads(threads=1)
 
         vae, mdrnn = self._get_vae_mdrnn()
         vae, mdrnn = vae.eval(), mdrnn.eval()
         num_rollouts_per_thread = int(self.num_rollouts / self.threads)
         print(f'{self.num_rollouts} rollouts across {self.threads} cores with {num_rollouts_per_thread} rollouts each.')
 
-        shared_rollout_counter = Value('i', self._rollout_counter,)
+        shared_rollout_counter = Value('i', self._rollout_counter)
         with Pool(int(self.threads), initargs=(Lock(), RLock(), shared_rollout_counter,), initializer=self.init_globals) as pool:
             threads = [pool.apply_async(self._get_rollout_batch, args=(num_rollouts_per_thread, thread_id, iteration, vae, mdrnn))
                        for thread_id in range(1, self.threads + 1)]
@@ -126,7 +122,7 @@ class IterativeTrainer:
         tqdm.set_lock(tqdm_lock)
 
     def _set_rollout_count(self):
-        if self.is_replay_buffer:  # To override old files if rollout capacity is full
+        if self.is_replay_buffer:
             rollout_counter.value = 1 if rollout_counter.value > self.max_buffer_size else rollout_counter.value + 1
         else:
             rollout_counter.value = 1 if rollout_counter.value > self.num_rollouts else rollout_counter.value + 1
@@ -139,18 +135,16 @@ class IterativeTrainer:
         agent_wrapper = AgentWrapper(self.planning_agent, self.config, vae, mdrnn)
         for rollout_number in range(1, num_rollouts_per_thread + 1):
             actions, states, rewards, terminals = self._create_rollout(agent_wrapper, environment, thread_id, rollout_number, num_rollouts_per_thread, iteration)
-
             with rollout_lock:
                 self._set_rollout_count()
                 self._save_rollout(actions, states, rewards, terminals)
-
         environment.close()
 
     def _create_rollout(self, agent_wrapper, environment, thread_id, rollout_number, num_rollouts_per_thread, iteration):
         state, environment = self._reset(environment, agent_wrapper)
         actions, states, rewards, terminals = [], [], [], []
         progress_description = f"Data generation at iteration {iteration} | thread: {thread_id} | rollout: {rollout_number}/{num_rollouts_per_thread}"
-        for _ in tqdm(range(self.sequence_length+1), desc=progress_description, position=thread_id-1):
+        for _ in tqdm(range(self.sequence_length + 1), desc=progress_description, position=thread_id - 1):
             action = agent_wrapper.search(state)
             state, reward, done, info = environment.step(action)
             agent_wrapper.synchronize(state, action)
@@ -176,7 +170,8 @@ class IterativeTrainer:
     def _set_car_position(self, start_track, environment):
         if start_track == 1:
             return
-        environment.environment.env.car = Car(environment.environment.env.world, *environment.environment.env.track[start_track][1:4])
+        core_env = environment.environment.unwrapped
+        core_env.car = Car(core_env.world, *core_env.track[start_track][1:4])
 
     def _save_rollout(self, actions, states, rewards, terminals):
         file_name = f'iterative_rollout_{rollout_counter.value}'
@@ -209,9 +204,8 @@ class IterativeTrainer:
         iteration_result.mdrnn_test_losses = test_losses
         iteration_results[iteration] = iteration_result
 
-    # Needed threads since multi threading does not work with shared GPU/CPU for model
     def _test_planning(self, iteration, iteration_results, test_threads):
-        if len(test_threads) >= self.max_test_threads:  # Prevent spawning too many test threads
+        if len(test_threads) >= self.max_test_threads:
             [p.join() for p in test_threads]
         p = Process(target=self._test_thread, args=[iteration, iteration_results])
         p.start()
@@ -242,9 +236,8 @@ class IterativeTrainer:
     def _log_iteration_test_results(self, iteration_result):
         logger = PlanningLogger(is_logging=True)
         logger.start_log(name=f'{self.config["experiment_name"]}_main_{iteration_result.agent_name}')
-
         logger.log_iteration_max_reward(test_name=iteration_result.test_name, trials=iteration_result.total_trials,
-                                             iteration=iteration_result.iteration, max_reward=iteration_result.get_average_max_reward())
+                                        iteration=iteration_result.iteration, max_reward=iteration_result.get_average_max_reward())
         logger.log_iteration_avg_reward(test_name=iteration_result.test_name, trials=iteration_result.total_trials,
                                         iteration=iteration_result.iteration, avg_reward=iteration_result.get_average_total_reward())
         logger.log_reward_mean_std(iteration_result.test_name, iteration_result.trials_rewards, iteration_result.iteration)
@@ -253,10 +246,8 @@ class IterativeTrainer:
     def _save_iteration_stats(self, iteration_results):
         stats_filename = f'iterative_stats_{self.config["experiment_name"]}'
         stats_filepath = join(self.iteration_stats_dir, f'{stats_filename}')
-
         encoded_iteration_results = [iteration_result.to_dict() for iteration_result in list(iteration_results.values())
-                                     if iteration_result.test_name]  # Only save completed iteration
-
+                                     if iteration_result.test_name]
         file_content = {'iteration_results': encoded_iteration_results}
         with open(f'{stats_filepath}.pickle', 'wb') as file:
             pickle.dump(file_content, file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -270,9 +261,7 @@ class IterativeTrainer:
             with open(f'{stats_filepath}', 'rb') as file:
                 file_content = pickle.load(file)
                 decoded_results = [IterationResult.to_obj(encoded_result) for encoded_result in file_content['iteration_results']]
-                iteration_results = {}
-                for iteration_result in decoded_results:
-                    iteration_results[iteration_result.iteration] = iteration_result
+                iteration_results = {r.iteration: r for r in decoded_results}
                 return iteration_results, len(iteration_results)
         return {}, 0
 
@@ -282,8 +271,7 @@ class IterativeTrainer:
 
     def _set_torch_threads(self, threads):
         torch.set_num_threads(threads)
-        os.environ['OMP_NUM_THREADS'] = str(threads)  # Inference in CPU to avoid cpu scheduling - slow parallel data generation
+        os.environ['OMP_NUM_THREADS'] = str(threads)
 
-    def _make_session_name(self, model_name, agent_name,  iteration):
+    def _make_session_name(self, model_name, agent_name, iteration):
         return f'{model_name}_{agent_name}_iteration_{iteration}_h{self.planning_agent.horizon}_g{self.planning_agent.max_generations}_sb{self.planning_agent.is_shift_buffer}'
-

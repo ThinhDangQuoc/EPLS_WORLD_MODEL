@@ -6,7 +6,7 @@
 
 import math
 import numpy as np
-from gym.envs.box2d.car_dynamics import Car
+from gymnasium.envs.box2d.car_dynamics import Car
 
 FPS = 50
 SCALE = 6.0  # Track scale
