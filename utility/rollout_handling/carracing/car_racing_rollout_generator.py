@@ -40,7 +40,7 @@ class RolloutGenerator(BaseRolloutGenerator):
         core_env = environment.environment.unwrapped
         car_position = np.random.randint(len(core_env.track))
         core_env.car = Car(core_env.world, *core_env.track[car_position][1:4])
-        obs, _, _, _, _ = environment.environment.step([0, 0, 0])
+        obs, _, _, _, _ = environment.environment.step(np.array([0, 0, 0], dtype=np.float32))
         return obs, car_position
 
     def _step(self, environment, obs, previous_action, model=None):

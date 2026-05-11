@@ -95,7 +95,7 @@ env = gym.make('CarRacing-v3', render_mode='human')
 env.reset(seed=seed)
 core: Any = env.unwrapped  # access internal state via .unwrapped throughout
 
-[env.step([0, 0, 0]) for _ in range(50)]
+[env.step(np.array([0, 0, 0], dtype=np.float32)) for _ in range(50)]
 env.render()
 core.car = Car(core.world, *core.track[start_track][1:4])
 vis = Visualizer()
@@ -108,7 +108,7 @@ plan = [action for _ in range(HORIZON)]
 FPS = 50
 
 for _ in range(STEPS_SO_FAR):
-    env.step(prior_action)
+    env.step(np.array(prior_action, dtype=np.float32))
     env.render()
 
 car = core.car
@@ -207,7 +207,7 @@ assert reset_wheels[3] == start_wheels[3]
 env.render()
 
 for action in plan:
-    obs, reward, terminated, truncated, _ = env.step(action)
+    obs, reward, terminated, truncated, _ = env.step(np.array(action, dtype=np.float32))
     env.render()
 
 core.reward = core.reward + total_tiles_visited * 1000.0 / len(core.track)
