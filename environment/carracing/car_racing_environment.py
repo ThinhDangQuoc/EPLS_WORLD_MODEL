@@ -33,13 +33,13 @@ class CarRacingEnvironment(BaseEnvironment):
         return obs
 
     def _skip_zoom(self):
-        return [self.environment.step([0, 0, 0])[0] for _ in range(50)][-1]
+        return [self.environment.step(np.array([0, 0, 0], dtype=np.float32))[0] for _ in range(50)][-1]
 
     def _randomize_car_pos(self):
         core_env = self.environment.unwrapped
         random_car_position = np.random.randint(len(core_env.track))
         core_env.car = Car(core_env.world, *core_env.track[random_car_position][1:4])
-        obs, _, _, _, _ = self.environment.step([0, 0, 0])
+        obs, _, _, _, _ = self.environment.step(np.array([0, 0, 0], dtype=np.float32))
         return obs
 
     def _standardize_reward(self, reward):

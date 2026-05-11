@@ -1,3 +1,4 @@
+import numpy as np
 import environment.actions.action_sampler_factory as action_sampler
 
 
@@ -14,6 +15,9 @@ class BaseEnvironment:
             raise Exception('Cannot call step before reset.')
         if self._is_done and not ignore_is_done:
             raise Exception('Cannot step since game is done. Please call reset.')
+
+        if isinstance(action, (list, tuple)):
+            action = np.array(action, dtype=np.float32)
 
         obs, reward, terminated, truncated, info = self.environment.step(action)
         self._is_done = terminated or truncated
