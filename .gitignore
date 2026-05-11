@@ -2,11 +2,9 @@
 data_expert_raw/
 data_mixed_expert/
 data_iterative/
-*.tar
 *.pickle
 *.zip
 mdrnn/checkpoints/
-vae/checkpoints/
 
 # Python
 __pycache__/
