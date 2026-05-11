@@ -39,7 +39,10 @@ def run_main():
     for line in process.stdout:
         print(line, end="")
         sys.stdout.flush()
-    return process.wait()
+    returncode = process.wait()
+    if returncode != 0:
+        print(f"\n❌ Error: main.py exited with code {returncode}")
+    return returncode
 
 # ============================================================================
 # PROJECT SETUP
@@ -257,7 +260,9 @@ if RUN_PHASE in ['all', '1']:
                         "car_racing": {"is_ha_agent_driver": False}
                     }
                 })
-                run_main()
+                if run_main() != 0:
+                    print("🛑 Task 1A failed. Stopping execution to prevent invalid progress saving.")
+                    sys.exit(1)
             else:
                 print(f"   ✅ {existing_random} random rollouts found\n")
             progress = mark_task_done("phase1_generate_data", progress)
@@ -285,7 +290,9 @@ if RUN_PHASE in ['all', '1']:
                         "is_continue_model": False
                     }
                 })
-                run_main()
+                if run_main() != 0:
+                    print("🛑 Task 1B failed. Stopping execution to prevent invalid progress saving.")
+                    sys.exit(1)
             progress = mark_task_done("phase1_train_vae", progress)
             save_progress(1, "1B_vae_trained", progress["completed_tasks"])
         else:
@@ -314,7 +321,9 @@ if RUN_PHASE in ['all', '1']:
                         "early_stop_after_n_bad_epochs": 5
                     }
                 })
-                run_main()
+                if run_main() != 0:
+                    print("🛑 Task 1C failed. Stopping execution to prevent invalid progress saving.")
+                    sys.exit(1)
             progress = mark_task_done("phase1_train_mdrnn", progress)
             save_progress(1, "1C_mdrnn_trained", progress["completed_tasks"])
         else:
@@ -348,7 +357,9 @@ if RUN_PHASE in ['all', '1']:
                     "is_logging": True
                 }
             })
-            run_main()
+            if run_main() != 0:
+                print("🛑 Task 1D failed. Stopping execution to prevent invalid progress saving.")
+                sys.exit(1)
             progress = mark_task_done("phase1_benchmark", progress)
             save_progress(2, "phase1_complete", progress["completed_tasks"])
         else:
@@ -417,7 +428,9 @@ if RUN_PHASE in ['all', '2']:
                     }
                 }
             })
-            run_main()
+            if run_main() != 0:
+                print("🛑 Task 2B failed. Stopping execution to prevent invalid progress saving.")
+                sys.exit(1)
             progress = mark_task_done("phase2_iterative_train", progress)
             save_progress(2, "2B_iterative_trained", progress["completed_tasks"])
         else:
@@ -448,7 +461,9 @@ if RUN_PHASE in ['all', '2']:
                     "is_logging": True
                 }
             })
-            run_main()
+            if run_main() != 0:
+                print("🛑 Task 2C failed. Stopping execution to prevent invalid progress saving.")
+                sys.exit(1)
             progress = mark_task_done("phase2_benchmark", progress)
             save_progress(3, "phase2_complete", progress["completed_tasks"])
         else:

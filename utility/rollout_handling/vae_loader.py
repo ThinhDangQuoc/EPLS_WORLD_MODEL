@@ -13,8 +13,14 @@ class _VAERolloutDataset(torch.utils.data.Dataset): # pylint: disable=too-few-pu
     def __init__(self, root, transform, buffer_size=100, is_train=True, file_ratio=0.8): # pylint: disable=too-many-arguments
         self._transform = transform
 
-        self._files = [os.path.join(root, name) for root, dirs, files in os.walk(root) for name in files]
+        self._files = [os.path.join(root, name) for root, dirs, files in os.walk(root) for name in files if name.endswith('.npz')]
+        if not self._files:
+            raise FileNotFoundError(f"No .npz files found in {root}. Make sure data generation (Task 1A) completed successfully.")
+
         self._files = self._standard_sampling(self._files, is_train, file_ratio)
+        if not self._files:
+            mode = "train" if is_train else "test"
+            raise ValueError(f"No files available for {mode} mode after sampling with ratio {file_ratio}. Total files: {len(self._files)}")
 
         self._cum_size = None
         self._buffer = None
@@ -33,6 +39,9 @@ class _VAERolloutDataset(torch.utils.data.Dataset): # pylint: disable=too-few-pu
 
     def load_next_buffer(self):
         """ Loads next buffer """
+        if not self._files:
+            return
+
         self._buffer_fnames = self._files[self._buffer_index:self._buffer_index + self._buffer_size]
         self._buffer_index += self._buffer_size
         self._buffer_index = self._buffer_index % len(self._files)
