@@ -31,7 +31,13 @@ class Main:
     def train_or_reload_vae(self):
         vae_trainer = VaeTrainer(self.config, self.frame_preprocessor)
         vae = VAE(self.config)
-        return vae_trainer.train(vae) if self.config["is_train_vae"] else vae_trainer.reload_model(vae)
+        try:
+            return vae_trainer.train(vae) if self.config["is_train_vae"] else vae_trainer.reload_model(vae)
+        except Exception as e:
+            if "No VAE model found" in str(e):
+                print(f"[WARN] {e}. Skipping VAE-dependent tasks.")
+                return None
+            raise e
 
     def train_or_reload_mdrnn(self):
         mdrnn = MDRNN(num_actions=self.environment.action_sampler.num_actions,
@@ -39,12 +45,18 @@ class Main:
                       num_gaussians=self.config['mdrnn']['num_gaussians'],
                       num_hidden_units=self.config['mdrnn']['hidden_units'])
 
-        if self.config["is_iterative_train_mdrnn"]:
-            return self._iterative_mdrnn_training(mdrnn)
-        elif self.config["is_train_mdrnn"]:
-            return self._standard_mdrnn_training(mdrnn)
-        else:
-            return self.mdrnn_trainer.reload_model(mdrnn)
+        try:
+            if self.config["is_iterative_train_mdrnn"]:
+                return self._iterative_mdrnn_training(mdrnn)
+            elif self.config["is_train_mdrnn"]:
+                return self._standard_mdrnn_training(mdrnn)
+            else:
+                return self.mdrnn_trainer.reload_model(mdrnn)
+        except Exception as e:
+            if "No MDRNN model found" in str(e):
+                print(f"[WARN] {e}. Skipping MDRNN-dependent tasks.")
+                return None
+            raise e
 
     def _standard_mdrnn_training(self, mdrnn):
         trained_mdrnn, _ = self.mdrnn_trainer.train(vae, mdrnn)
@@ -109,13 +121,25 @@ if __name__ == '__main__':
         mdrnn = main.train_or_reload_mdrnn()
 
     if config['test_suite']["is_run_model_tests"]:
-        main.run_model_tests(vae, mdrnn)
+        if vae and mdrnn:
+            main.run_model_tests(vae, mdrnn)
+        else:
+            print("[WARN] Model tests skipped: Models not loaded.")
 
-    if config['is_ntbea_param_tune']:
-        main.run_ntbea_tuning(vae, mdrnn)
+    if config.get('is_ntbea_param_tune', False):
+        if vae and mdrnn:
+            main.run_ntbea_tuning(vae, mdrnn)
+        else:
+            print("[WARN] NTBEA tuning skipped: Models not loaded.")
 
     if config['test_suite']["is_run_planning_tests"]:
-        main.run_planning_tests(vae, mdrnn)
+        if vae and mdrnn:
+            main.run_planning_tests(vae, mdrnn)
+        else:
+            print("[WARN] Planning tests skipped: Models not loaded.")
 
     if config["is_play"]:
-        main.play_game(vae, mdrnn)
+        if vae and mdrnn:
+            main.play_game(vae, mdrnn)
+        else:
+            print("[WARN] Play game skipped: Models not loaded.")

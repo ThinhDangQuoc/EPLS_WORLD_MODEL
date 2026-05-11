@@ -1,8 +1,9 @@
 {
   "phase": 1,
-  "stage": "phase1_generate_data",
+  "stage": "phase1_train_vae",
   "completed_tasks": [
-    "phase1_generate_data"
+    "phase1_generate_data",
+    "phase1_train_vae"
   ],
   "timestamp": "2026-05-11 09:25:25"
 }

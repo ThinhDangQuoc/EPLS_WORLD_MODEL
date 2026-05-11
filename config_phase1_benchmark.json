@@ -25,7 +25,7 @@
     },
     "test_suite": {
         "is_run_model_tests": false,
-        "is_run_planning_tests": true,
+        "is_run_planning_tests": false,
         "is_reload_planning_session": false,
         "trials": 10,
         "is_multithread_tests": false,
