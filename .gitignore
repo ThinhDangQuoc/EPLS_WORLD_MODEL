@@ -1,9 +1,7 @@
 # Data and Checkpoints
-data_random_raw/
 data_expert_raw/
 data_mixed_expert/
 data_iterative/
-*.npz
 *.tar
 *.pickle
 *.zip
