@@ -247,8 +247,7 @@ class MDRNNTrainer:
         return ReduceLROnPlateau(optimizer,
                                  mode=self.config['mdrnn_trainer']['ReduceLROnPlateau']['mode'],
                                  factor=self.config['mdrnn_trainer']['ReduceLROnPlateau']['factor'],      # how much lr is reduced new_lr = lr * factor
-                                 patience=self.config['mdrnn_trainer']['ReduceLROnPlateau']['patience'],  # How many epochs to ignore before lr changes
-                                 verbose=self.config['mdrnn_trainer']['ReduceLROnPlateau']['print_lr_change'])
+                                 patience=self.config['mdrnn_trainer']['ReduceLROnPlateau']['patience'])  # How many epochs to ignore before lr changes
 
     def _set_device(self):
         if torch.cuda.is_available():
