@@ -111,7 +111,7 @@ def fix_python_packages():
 
 link_previous_kaggle_outputs()
 fix_python_packages()
-print(f"✨ Using Gymnasium (CarRacing-v2) with native 5-tuple step API")
+print(f"✨ Using Gymnasium (CarRacing-v3) with native 5-tuple step API")
 
 # ---------- Xvfb helper ----------
 _xvfb_proc = None

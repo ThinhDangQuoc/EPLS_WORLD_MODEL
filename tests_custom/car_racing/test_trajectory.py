@@ -91,7 +91,7 @@ def set_wheel_info(wheel, wheel_info):
 
 seed = 2
 start_track = 205
-env = gym.make('CarRacing-v2', render_mode='human')
+env = gym.make('CarRacing-v3', render_mode='human')
 env.reset(seed=seed)
 core: Any = env.unwrapped  # access internal state via .unwrapped throughout
 
