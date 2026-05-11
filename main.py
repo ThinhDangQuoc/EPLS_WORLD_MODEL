@@ -39,17 +39,21 @@ class Main:
                 return None
             raise e
 
-    def train_or_reload_mdrnn(self):
+    def train_or_reload_mdrnn(self, vae):
         mdrnn = MDRNN(num_actions=self.environment.action_sampler.num_actions,
                       latent_size=self.config['latent_size'],
                       num_gaussians=self.config['mdrnn']['num_gaussians'],
                       num_hidden_units=self.config['mdrnn']['hidden_units'])
 
+        is_training = self.config["is_iterative_train_mdrnn"] or self.config["is_train_mdrnn"]
+        if is_training and vae is None:
+            raise Exception("Cannot train MDRNN without a valid VAE model. Please ensure the VAE is trained or reloaded successfully.")
+
         try:
             if self.config["is_iterative_train_mdrnn"]:
                 return self._iterative_mdrnn_training(mdrnn)
             elif self.config["is_train_mdrnn"]:
-                return self._standard_mdrnn_training(mdrnn)
+                return self._standard_mdrnn_training(vae, mdrnn)
             else:
                 return self.mdrnn_trainer.reload_model(mdrnn)
         except Exception as e:
@@ -58,7 +62,7 @@ class Main:
                 return None
             raise e
 
-    def _standard_mdrnn_training(self, mdrnn):
+    def _standard_mdrnn_training(self, vae, mdrnn):
         trained_mdrnn, _ = self.mdrnn_trainer.train(vae, mdrnn)
         return trained_mdrnn
 
@@ -66,7 +70,7 @@ class Main:
         planning_agent = get_planning_agent(self.config)
         iterative_trainer = IterativeTrainer(self.config, planning_agent, self.mdrnn_trainer)
         iterative_trainer.train()
-        self.mdrnn_trainer.reload_model(mdrnn)
+        return self.mdrnn_trainer.reload_model(mdrnn)
 
     def run_ntbea_tuning(self, vae, mdrnn):
         agent = get_planning_agent(self.config)
@@ -109,7 +113,8 @@ if __name__ == '__main__':
 
     # Only load models if training or testing/playing is required
     vae = None
-    if config["is_train_vae"] or config['test_suite']["is_run_model_tests"] or \
+    if config["is_train_vae"] or config["is_train_mdrnn"] or config["is_iterative_train_mdrnn"] or \
+       config['test_suite']["is_run_model_tests"] or \
        config['test_suite']["is_run_planning_tests"] or config["is_play"] or \
        config.get('is_ntbea_param_tune', False):
         vae = main.train_or_reload_vae()
@@ -118,7 +123,7 @@ if __name__ == '__main__':
     if config["is_train_mdrnn"] or config["is_iterative_train_mdrnn"] or \
        config['test_suite']["is_run_model_tests"] or config['test_suite']["is_run_planning_tests"] or \
        config["is_play"] or config.get('is_ntbea_param_tune', False):
-        mdrnn = main.train_or_reload_mdrnn()
+        mdrnn = main.train_or_reload_mdrnn(vae)
 
     if config['test_suite']["is_run_model_tests"]:
         if vae and mdrnn:
