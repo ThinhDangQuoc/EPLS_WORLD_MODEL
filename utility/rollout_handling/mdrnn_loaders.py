@@ -75,13 +75,19 @@ class _MDRNNRolloutDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self._files)
 
-    def __getitem__(self, i):
-        # print(f'loaded: {self._files[i]}')
-        with np.load(self._files[i]) as data:
-            data = {k: np.copy(v) for k, v in data.items()}
-        return self._get_data(data)
+    def __getitem__(self, index):
+        try:
+            with np.load(self._files[index]) as data:
+                data = {k: np.copy(v) for k, v in data.items()}
+            return self._get_data(data)
+        except (EOFError, ValueError, KeyError, OSError) as e:
+            print(f"[WARN] File {self._files[index]} is corrupted or empty: {e}. Skipping and picking another.")
+            # Recursively try a different random index
+            new_idx = random.randrange(len(self._files))
+            return self.__getitem__(new_idx)
 
     def _get_data(self, data):
+        """ Extract data from the loaded dictionary. """
         pass
 
     def _data_per_sequence(self, data_length):
