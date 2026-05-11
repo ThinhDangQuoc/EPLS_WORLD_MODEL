@@ -95,8 +95,18 @@ if __name__ == '__main__':
     if config["is_generate_data"]:
         main.generate_data()
 
-    vae = main.train_or_reload_vae()
-    mdrnn = main.train_or_reload_mdrnn()
+    # Only load models if training or testing/playing is required
+    vae = None
+    if config["is_train_vae"] or config['test_suite']["is_run_model_tests"] or \
+       config['test_suite']["is_run_planning_tests"] or config["is_play"] or \
+       config.get('is_ntbea_param_tune', False):
+        vae = main.train_or_reload_vae()
+
+    mdrnn = None
+    if config["is_train_mdrnn"] or config["is_iterative_train_mdrnn"] or \
+       config['test_suite']["is_run_model_tests"] or config['test_suite']["is_run_planning_tests"] or \
+       config["is_play"] or config.get('is_ntbea_param_tune', False):
+        mdrnn = main.train_or_reload_mdrnn()
 
     if config['test_suite']["is_run_model_tests"]:
         main.run_model_tests(vae, mdrnn)
