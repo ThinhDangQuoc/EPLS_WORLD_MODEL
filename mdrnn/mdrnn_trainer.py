@@ -434,7 +434,7 @@ class MDRNNTrainer:
 
         with torch.no_grad():
             obs, next_obs = [
-                f.interpolate(x.view(-1, self.config['preprocessor']['num_channels'], image_height, image_width),
+                f.interpolate(x.reshape(-1, self.config['preprocessor']['num_channels'], image_height, image_width),
                               size=latent_output_size, mode='bilinear', align_corners=True)
                 for x in (obs, next_obs)]
 

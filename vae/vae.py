@@ -41,7 +41,7 @@ class Encoder(nn.Module):
                                                                   out_features=latent_size)
 
     def flatten(self, x):
-        return x.view(x.size(0), -1)
+        return x.reshape(x.size(0), -1)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
