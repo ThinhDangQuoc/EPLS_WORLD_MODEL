@@ -6,6 +6,8 @@
 #  Unauthorized copying of this file, via any medium is strictly prohibited without the consensus of the authors.
 #  Written by Thor V.A.N. Olesen <thorolesen@gmail.com> & Dennis T.T. Nguyen <dennisnguyen3000@yahoo.dk>.
 
+import os
+import json
 import torch
 import platform
 import numpy as np
@@ -158,6 +160,7 @@ class MDRNNTrainer:
                                    'scheduler': self.scheduler.state_dict(),
                                    'earlystopping': self.earlystopping.state_dict()
                                    }, is_best, iteration)
+            self._update_kaggle_status(epoch, max_epochs)
             if self.earlystopping.stop and self.is_iterative:
                 print(f"End of Training because of early stopping at epoch {epoch}")
                 break
@@ -248,6 +251,24 @@ class MDRNNTrainer:
                                  mode=self.config['mdrnn_trainer']['ReduceLROnPlateau']['mode'],
                                  factor=self.config['mdrnn_trainer']['ReduceLROnPlateau']['factor'],      # how much lr is reduced new_lr = lr * factor
                                  patience=self.config['mdrnn_trainer']['ReduceLROnPlateau']['patience'])  # How many epochs to ignore before lr changes
+
+    def _update_kaggle_status(self, epoch, max_epochs):
+        """ Update kaggle_progress.json with current epoch progress. """
+        progress_file = "kaggle_progress.json"
+        if os.path.exists(progress_file):
+            try:
+                with open(progress_file, "r") as f:
+                    progress = json.load(f)
+                
+                progress["epoch_progress"] = f"{epoch}/{max_epochs}"
+                # If we are in Phase 1, update the stage to show specific mdrnn progress
+                if progress.get("phase") == 1 and "phase1_train_mdrnn" not in progress.get("completed_tasks", []):
+                    progress["stage"] = f"1C_mdrnn_training_epoch_{epoch}"
+                
+                with open(progress_file, "w") as f:
+                    json.dump(progress, f, indent=2)
+            except Exception as e:
+                print(f"[WARN] Could not update kaggle_progress.json: {e}")
 
     def _set_device(self):
         if torch.cuda.is_available():

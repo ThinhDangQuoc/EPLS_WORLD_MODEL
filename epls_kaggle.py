@@ -287,7 +287,7 @@ if RUN_PHASE in ['all', '1']:
                         "max_epochs": 20,
                         "batch_size": 100,
                         "learning_rate": 0.0001,
-                        "is_continue_model": False
+                        "is_continue_model": True
                     }
                 })
                 if run_main() != 0:
@@ -301,29 +301,26 @@ if RUN_PHASE in ['all', '1']:
         # 1C. Train MDRNN
         if not is_task_done("phase1_train_mdrnn", progress):
             print("🚀 Task 1C: Training MDRNN (Random, 60 epochs)...")
-            if checkpoint_exists("World_Model_Random", "mdrnn"):
-                print("   ℹ️  MDRNN checkpoint exists, skipping training\n")
-            else:
-                set_config({
-                    "experiment_name": "World_Model_Random",
-                    "is_generate_data": False,
-                    "is_train_vae": False,
-                    "is_train_mdrnn": True,
-                    "is_iterative_train_mdrnn": False,
-                    "latent_size": 64,
-                    "mdrnn": {"hidden_units": 256, "num_gaussians": 5},
-                    "mdrnn_trainer": {
-                        "max_epochs": 60,
-                        "batch_size": 25,
-                        "learning_rate": 0.001,
-                        "sequence_length": 500,
-                        "is_continue_model": False,
-                        "early_stop_after_n_bad_epochs": 5
-                    }
-                })
-                if run_main() != 0:
-                    print("🛑 Task 1C failed. Stopping execution to prevent invalid progress saving.")
-                    sys.exit(1)
+            set_config({
+                "experiment_name": "World_Model_Random",
+                "is_generate_data": False,
+                "is_train_vae": False,
+                "is_train_mdrnn": True,
+                "is_iterative_train_mdrnn": False,
+                "latent_size": 64,
+                "mdrnn": {"hidden_units": 256, "num_gaussians": 5},
+                "mdrnn_trainer": {
+                    "max_epochs": 60,
+                    "batch_size": 25,
+                    "learning_rate": 0.001,
+                    "sequence_length": 500,
+                    "is_continue_model": True,
+                    "early_stop_after_n_bad_epochs": 5
+                }
+            })
+            if run_main() != 0:
+                print("🛑 Task 1C failed. Stopping execution to prevent invalid progress saving.")
+                sys.exit(1)
             progress = mark_task_done("phase1_train_mdrnn", progress)
             save_progress(1, "1C_mdrnn_trained", progress["completed_tasks"])
         else:
