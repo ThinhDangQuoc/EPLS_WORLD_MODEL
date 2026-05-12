@@ -4,7 +4,6 @@ data_mixed_expert/
 data_iterative/
 *.pickle
 *.zip
-mdrnn/checkpoints/
 
 # Python
 __pycache__/
